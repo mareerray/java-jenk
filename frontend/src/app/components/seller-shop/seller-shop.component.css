@@ -1,0 +1,71 @@
+/* Seller Info Card Styles */
+.seller-info-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.seller-avatar {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+.seller-avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  background-color: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  border: 2px solid var(--border);
+}
+
+.seller-name {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.seller-badge {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+}
+
+.badge.bg-primary {
+  background-color: var(--link-complementary) !important;
+}
+
+
+/* Product Card Styles - matching product-listing */
+.card-title {
+  color: var(--link);
+}
+
+.badge.bg-secondary {
+  text-align: left !important;
+}
+
+.btn-outline-primary {
+  color: var(--link);
+  border-color: var(--link);
+}
+
+.btn-outline-primary:hover {
+  color: white;
+  border-color: var(--link);
+}
+
+.btn-outline-secondary {
+  color: var(--text-secondary);
+  border-color: var(--text-secondary);
+}
+
+.price-text {
+  font-size: 1.8rem;
+}

@@ -1,0 +1,63 @@
+/* .footer {
+  background: #eee;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.95rem;
+  margin-top: 3rem;
+  color: #333;
+} */
+
+.footer {
+  background: #020617;
+  font-size: 0.9rem;
+  color: #9ca3af;
+
+}
+
+.footer-link {
+  color: #9ca3af;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  color: var(--link);
+}
+
+.logo-mark-sm {
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(135deg, #0aeb7e, #7c3aed, #243145, #0f172a);
+  color: var(--link);
+  font-size: 0.8rem;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.4);
+}
+
+.fw-semibold {
+  color: var(--link);
+}
+
+.social-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #e5e7eb;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.social-pill:hover {
+  background: var(--link-hover);
+}
+
+.creator-link {
+  color: var(--link);
+  text-decoration: none;
+}
+
+.mb-2 {
+  padding-right: 4rem;
+}

@@ -1,0 +1,44 @@
+<nav class="navbar"> 
+<!-- <a class="logo-link d-flex align-items-center gap-2" routerLink="/">
+  <img src="./assets/logo/grit-tee-logo.png" alt="grit:Tee logo" class="navbar-logo" />
+  <span>grit:Tee</span>
+</a> -->
+
+  <a class="logo-link d-flex align-items-center gap-2" routerLink="/">
+    <span class="logo-mark rounded-circle d-inline-flex align-items-center justify-content-center">
+      <i class="fas fa-shirt"></i>
+    </span>
+    <span>grit:Tee</span>
+  </a> 
+
+  <!-- <a routerLink="/" class="logo-link">grit:Tee</a> -->
+  <div class="nav-links">
+    <a routerLink="/product-listing">Shop All</a>
+    <a routerLink="/categories">Browse Collections</a>
+    <a routerLink="/about">About Us</a>
+    <!-- <a routerLink="/about">About Us</a> -->
+    <a *ngIf="authService.isSeller()" routerLink="/seller-dashboard">Seller Dashboard</a>
+
+  </div>
+  <div class="nav-actions">
+    <ng-container *ngIf="isAuthenticated; else guestLinks">
+      <a routerLink="/profile">
+        <span class="navbar-user">
+          <img
+            [src]="authService.currentUserValue?.avatar || 'assets/avatars/user-default.png'"
+            alt="avatar"
+            class="navbar-avatar"
+          />
+          {{ currentUserName }}
+        </span>
+      </a>
+      <a (click)="onLogout()" style="cursor: pointer">
+        <i class="fas fa-sign-out-alt me-2" aria-label="Logout"></i> Logout
+      </a>
+    </ng-container>
+    <ng-template #guestLinks>
+      <a routerLink="/signin">Sign In</a>
+      <a routerLink="/signup">Sign Up</a>
+    </ng-template>
+  </div>
+</nav>

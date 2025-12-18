@@ -1,0 +1,48 @@
+<div *ngIf="images && images.length > 0; else noImg">
+  <div [id]="carouselId" class="carousel slide">
+    <div class="carousel-inner">
+      <div *ngFor="let img of images; let i = index" class="carousel-item" [class.active]="i === 0">
+        <img
+          [src]="img"
+          [alt]="altText"
+          class="d-block w-100"
+          style="height: 450px; object-fit: cover; border-radius: 0.375rem 0.375rem 0 0"
+        />
+      </div>
+    </div>
+    <button
+      class="carousel-control-prev"
+      type="button"
+      [attr.data-bs-target]="'#' + carouselId"
+      data-bs-slide="prev"
+    >
+      <span class="carousel-control-prev-icon btn btn-dark"></span>
+    </button>
+    <button
+      class="carousel-control-next"
+      type="button"
+      [attr.data-bs-target]="'#' + carouselId"
+      data-bs-slide="next"
+    >
+      <span class="carousel-control-next-icon btn btn-dark"></span>
+    </button>
+    <div class="carousel-indicators">
+      <button
+        *ngFor="let img of images; let i = index"
+        type="button"
+        [attr.data-bs-target]="'#' + carouselId"
+        [attr.data-bs-slide-to]="i"
+        [class.active]="i === 0"
+        [attr.aria-label]="'Slide ' + (i + 1)"
+      ></button>
+    </div>
+  </div>
+</div>
+<ng-template #noImg>
+  <div
+    class="d-flex align-items-center justify-content-center bg-light text-white card-img-top"
+    style="height: 300px; border-radius: 0.75rem 0.75rem 0 0"
+  >
+    No image
+  </div>
+</ng-template>

@@ -1,0 +1,321 @@
+<!-- seller-dashboard.component.html -->
+<!-- Seller info -->
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+      <h2 class="text-center mb-4 d-flex align-items-center justify-content-center gap-2" style="font-size: 2rem;">
+        <span class="me-2 fw-bold">Seller : </span>
+        <img *ngIf="sellerAvatar"
+          [src]="sellerAvatar"
+          alt="Seller avatar"
+          width="60"
+          height="60"
+          class="rounded-circle me-2 border border-light"
+          style="object-fit: cover;">
+        <span class="fw-bold ms-0">{{ sellerName }}</span>
+      </h2>
+      <!-- Title & buttons -->
+      <h3 class="d-flex justify-content-between align-items-center">
+        Products List
+        <div class="d-flex gap-2">
+          <button
+            class="btn btn-outline-primary hover-lift"
+            (click)="viewMyShop()"
+          >
+            <i class="fas fa-store me-2"></i>View My Shop
+          </button>
+        </div>
+        <button class="btn btn-success hover-lift" (click)="openAddProductModal()">
+          <i class="fa fa-plus me-1"></i> Add New Product
+        </button>
+      </h3>
+      <div *ngIf="successMessage" class="alert alert-success mt-3 text-center d-flex justify-content-center align-items-center" role="alert">
+        {{ successMessage }}
+        <button type="button" class="btn-close ms-2" (click)="successMessage = null"></button>
+      </div>
+
+      <!-- Loading state -->
+      <div *ngIf="isLoadingProducts" class="text-center py-5 text-white">
+        Loading your products...
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="!isLoadingProducts && errorMessage && !successMessage">
+        {{ errorMessage }}
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!isLoadingProducts && !successMessage && !errorMessage && userProducts.length === 0"
+          class="text-center py-5 text-white">
+        You have not created any products yet.
+      </div>
+      <!-- Product cards -->
+      <div *ngIf="!isLoadingProducts && userProducts.length > 0">
+        <ul class="list-group mb-5">
+          <li class="list-group-item product-row" *ngFor="let product of userProducts; let i = index">
+            <div class="d-flex align-items-center">
+              <img *ngIf="product.images && product.images.length"
+                  [src]="product.images[0]"
+                  alt="Product Image"
+                  class="me-3 square-image">
+
+              <div class="flex-grow-1">
+                <div class="fw-bold d-flex align-items-center gap-2">
+                  <span>
+                    ID: {{ product.id }}<br />
+                    <strong>{{ product.name }}</strong><br />
+                  </span>
+                </div> 
+                " {{ product.description }} "<br />
+                <span>
+                  <i
+                    *ngIf="getCategoryById(product.categoryId)?.icon"
+                    [class]="getCategoryById(product.categoryId)?.icon"
+                    style="margin-right: 0.2em; color: white;"
+                    aria-hidden="true"
+                  ></i>
+                  {{ getCategoryById(product.categoryId)?.name || product.categoryId }}
+                </span>
+                <br>
+                <div class="d-flex align-items-center">
+                  <span class="me-3">Price: €{{ product.price }}</span>
+                  <span>|</span>
+                  <span class="ms-3">Quantity: {{ product.quantity }} pc</span>
+                </div>
+              </div>
+              <div class="action-buttons">
+                <!-- View (eye) -->
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-light view-icon-btn"
+                  [routerLink]="['/product', product.id]"
+                  aria-label="View product"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+
+                <!-- Edit (pencil) -->
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="editProduct(i)"
+                  aria-label="Edit product"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+
+                <!-- Delete (trash) -->
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="deleteProduct(i)"
+                  aria-label="Delete product"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+              <!-- <button class="btn btn-sm btn-warning me-2 hover-lift" (click)="editProduct(i)">Edit</button>
+              <button class="btn btn-sm btn-danger hover-lift" (click)="deleteProduct(i)">Delete</button> -->
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+  <!-- Modal Backdrop (overlay) -->
+<div 
+  class="modal-backdrop show custom-modal-backdrop"
+  *ngIf="showModal">
+</div>
+<!-- Modal Dialog (edit form) -->
+<div 
+  class="modal fade show custom-modal-absolute"
+  tabindex="-1"
+  style="display: block;"
+  *ngIf="showModal"
+  (click)="$event.stopPropagation()">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+            {{ editIndex === null ? "Add Product" : "Edit Product" }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white hover-lift" aria-label="Close" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="productForm" (ngSubmit)="submitProduct()" novalidate>
+          <div class="mb-3">
+            <label class="form-label">Product Name</label>
+            <input
+              formControlName="name"
+              type="text"
+              class="form-control custom-width"
+              [class.is-invalid]="
+                productForm.get('name')?.invalid && productForm.get('name')?.touched
+              "
+            />
+            <div
+              *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched"
+              class="invalid-feedback"
+            >
+              Name is required.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea
+              formControlName="description"
+              class="form-control custom-width"
+              [class.is-invalid]="
+                productForm.get('description')?.invalid && productForm.get('description')?.touched
+              "
+              style="width: 100%; height: 120px; resize: none"
+            ></textarea>
+            <div
+              *ngIf="
+                productForm.get('description')?.invalid && productForm.get('description')?.touched
+              "
+              class="invalid-feedback"
+            >
+              Description is required.
+            </div>
+          </div>
+
+          <div class="mb-3 custom-radio-group">
+            <label class="form-label d-block mb-2">
+              Category <small class="text-white">(Please choose ONE category)</small>
+            </label>
+            <div class="d-flex flex-wrap gap-3">
+              <label
+                *ngFor="let cat of categories"
+                class="custom-radio-label"
+                [ngClass]="{ 'selected-category': selectedCategoryId === cat.id }"
+                style="min-width: 120px"
+              >
+                <input type="radio" formControlName="categoryId" [value]="cat.id" />
+                <span class="custom-radio-text">{{ cat.name }}</span>
+              </label>
+            </div>
+            <div
+              *ngIf="productForm.get('categoryId')?.invalid && productForm.get('categoryId')?.touched"
+              class="invalid-feedback d-block"
+            >
+              Category is required.
+            </div>
+          </div>
+
+          <div class="form-control-group">
+            <div class="mb-3 d-flex gap-3">
+              <div class="flex-fill">
+                <label class="form-label">Price</label>
+                <input
+                  formControlName="price"
+                  type="number"
+                  class="form-control custom-width"
+                  [class.is-invalid]="
+                    productForm.get('price')?.invalid && productForm.get('price')?.touched
+                  "
+                />
+                <div
+                  *ngIf="productForm.get('price')?.invalid && productForm.get('price')?.touched"
+                  class="invalid-feedback"
+                >
+                  Price must be greater than 0.
+                </div>
+              </div>
+
+              <div class="flex-fill">
+                <label class="form-label">Quantity</label>
+                <input
+                  formControlName="quantity"
+                  type="number"
+                  class="form-control custom-width"
+                  [class.is-invalid]="
+                    productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched
+                  "
+                />
+                <div
+                  *ngIf="productForm.get('quantity')?.invalid && productForm.get('quantity')?.touched"
+                  class="invalid-feedback"
+                >
+                  Quantity must be at least 1.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image media upload -->
+          <div class="card my-3">
+            <div class="card-header">Media Management</div>
+            <div class="card-body">
+              <!-- Drag & Drop Upload Area -->
+              <div
+                class="upload-area drop-zone"
+                (click)="fileInput.click()"
+                (drop)="onDrop($event)"
+                (dragover)="onDragOver($event)"
+                [class.active]="isDragActive"
+                (dragleave)="isDragActive = false"
+              >
+                <div class="drop-zone-content text-center">
+                  <i class="fas fa-upload fa-2x text-primary mb-2 hover-lift"></i>
+                  <div>Drag & drop images here or click to select files</div>
+                  <input
+                    #fileInput
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    class="d-none"
+                    (change)="onFilesSelected($event)"
+                  />
+                </div>
+              </div>
+
+              <div *ngIf="imageValidationError" class="text-danger">
+                {{ imageValidationError }}
+              </div>
+
+              <!-- Preview Area: show all selected images -->
+              <div class="preview-gallery d-flex flex-wrap gap-2 mt-3">
+                <div *ngFor="let img of imagePreviews; let i = index" class="position-relative">
+                  <img [src]="img.dataUrl" class="img-thumbnail" width="120" />
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm position-absolute top-0 end-0 btn-small-x hover-lift"
+                    (click)="removeImage(i)"
+                  >
+                    ✖
+                  </button>
+                  <button
+                  type="button"
+                    class="btn btn-secondary btn-sm position-absolute bottom-0 end-0 hover-lift"
+                    (click)="moveImageUp(i)"
+                    *ngIf="i > 0"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm position-absolute bottom-0 start-0 hover-lift"
+                    (click)="moveImageDown(i)"
+                    *ngIf="i < imagePreviews.length - 1"
+                  >
+                    ↓
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+<!-- ...all your form fields here... -->
+          <button type="submit" class="btn btn-primary hover-lift">Save Product</button>
+          <button type="button" class="btn btn-secondary ms-2 hover-lift" (click)="closeModal()">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+

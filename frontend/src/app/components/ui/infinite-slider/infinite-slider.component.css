@@ -1,0 +1,174 @@
+/* Top-level styles */
+.slider.dual-slider {
+  box-shadow:
+    inset 20px 0 20px -10px rgba(0, 0, 0, 0.12),
+    inset -20px 0 20px -10px rgba(0, 0, 0, 0.12);
+}
+
+.slider {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.slider-row {
+  margin-top: 20px;
+  margin-bottom: 1rem;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.slider-list {
+  display: flex;
+  width: max-content;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Seller slider: right to left */
+.sellers-list {
+  animation: slider-scroll-rtl 30s linear infinite;
+  width: max-content;
+  height: 45px;
+}
+
+.sellers-list:hover {
+  animation-play-state: paused;
+}
+
+/* Product slider: right to left */
+.products-list {
+  animation: slider-scroll-rtl 60s linear infinite;
+  flex-direction: row-reverse;
+  width: max-content;
+}
+
+.products-list:hover {
+  animation-play-state: paused;
+}
+
+/* Items - Base styles with hover effects */
+.slider-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 20px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.slider-item:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+/* Hover overlay icon for sellers */
+.seller-item::after {
+  content: '\f54e'; /* FontAwesome store icon */
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.seller-item:hover::after {
+  opacity: 1;
+}
+
+/* Hover overlay icon for products */
+.product-item::after {
+  content: '\f06e'; /* FontAwesome eye icon */
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.product-item:hover::after {
+  opacity: 1;
+}
+
+/* Avatar styles */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 0.5rem;
+  transition: border 0.3s ease, opacity 0.3s ease;
+}
+
+.seller-item:hover .avatar {
+  border: 3px solid var(--link);
+  opacity: 0.9;
+}
+
+.seller-name {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Product image styles */
+.product-image {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.product-item:hover .product-image {
+  opacity: 0.85;
+}
+
+/* Make product images bigger in products-row */
+.products-row .product-image {
+  width: 300px;
+  height: 400px;
+}
+
+/* Infinite scroll keyframes */
+@keyframes slider-scroll-rtl {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-25%);
+  }
+}
+
+
+
