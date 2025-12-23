@@ -1,140 +1,186 @@
-<h1 id="top">buy-one</h1>
-buy-one is an end-to-end e-commerce platform built with Spring Boot microservices and Angular, allowing clients to browse products and sellers to manage their own catalog and product media.
+# Buy-One E‑commerce Platform (CI/CD)
 
----
-
-![App screenshot](./frontend/src/assets/images/projectOverview.jpg)
-
-## Features
-
-- User registration as CLIENT or SELLER with JWT-based authentication and authorization.
-- Seller-only product CRUD with ownership checks enforced at the API layer.
-- Media service for product images with `image/*` validation and a 2MB size limit.
-- API gateway and discovery service for routing, security, and service registration.
-- Angular SPA for product browsing, seller dashboard, and profile management.
-
-## Architecture
-
-The backend is composed of separate microservices for users, products, media, an API gateway, and a discovery service, with an Angular SPA as the frontend.
-Services communicate over REST via the gateway, use MongoDB for persistence, and store images in object storage such as S3 or Cloudflare R2.
-
-<details>
-<summary>Project structure</summary>
-
-```text
-buy-one/
-├── docker-compose.yml
-├── start-app.sh
-├── start-backend.sh
-├── start-frontend.sh
-├── stop-app.sh
-├── README.md
-├── backend/
-│   ├── discovery-service/
-│   ├── gateway-service/
-│   ├── user-service/
-│   ├── product-service/
-│   └── media-service/
-└── frontend/
-    ├── Dockerfile
-    ├── angular.json
-    ├── src/
-    │   ├── app/        # components, guards, models, services
-    │   ├── assets/
-    │   └── environments/
-    └── Doc/
-```
-
-</details>
+This repository contains the **Buy-One** e‑commerce platform, implemented as a Spring Boot microservices backend and an Angular frontend, designed to be deployed through a Jenkins-based CI/CD pipeline.
 
 ## Tech stack
 
-- **Backend:** Java, Spring Boot, Spring Security, Spring Cloud (Gateway, Eureka/Discovery).
-- **Frontend:** Angular SPA.
-- **Database:** MongoDB per service.
-- **Messaging:** Kafka for product events (created/updated/deleted).
-- **Infrastructure:** Docker / Docker Compose.
-- **Auth:** JWT tokens issued by the User Service and validated at the gateway and services.
+- **Backend**
+    - Java + Spring Boot (multiple microservices)
+    - Maven (using `mvnw` wrapper)
+    - JUnit for automated tests
+- **Frontend**
+    - Angular (Angular CLI)
+    - Jasmine/Karma for unit tests
+- **Infrastructure**
+    - Docker for containerization
+    - Docker Compose for local orchestration
+    - Jenkins (planned) for CI/CD
 
-## Getting started
+## Repository structure
 
-### Prerequisites
+From the repository root:
 
-- Java (e.g., 17+).
-- Node.js and npm.
-- Docker and Docker Compose installed.
-- Storage - Using Cloud, No need for local install
-  - MongoDB: Atlas Cluster
-  - Cloudflare R2
-- Apache/kafka using Docker Compose.
+- `backend/`
+    - `discovery-service/`
+    - `gateway-service/`
+    - `media-service/`
+    - `product-service/`
+    - `user-service/`
+- `frontend/` – Angular client
+- `docker-compose.yml` – local stack (backends + frontend + dependencies)
+- `start-app.sh`, `start-backend.sh`, `start-frontend.sh`, `stop-app.sh` – local helper scripts
 
-### Installation
+Each backend service is an independent Spring Boot Maven project with its own `pom.xml` and `mvnw` wrapper.
 
-- Clone the repository.
-- Build backend services: `cd backend/<service> && ./mvnw clean package`.
-- Install frontend dependencies: `cd frontend && npm install`.
+## Branching and workflow
 
-### Running the services
+This repo is structured for a simple, CI-friendly workflow:
 
-- Preferred: `docker compose up` from the project root to start all services and the frontend.
-- Manual: start discovery, then gateway, then user/product/media services, then run `npm start` (or `ng serve`) in `frontend`.
+- `main`
+    - Always stable and deployable.
+    - Jenkins runs **full pipeline** (build + test all microservices and frontend, then deploy).
+- `feature/*`
+    - Used for feature development.
+    - Jenkins runs **build + tests only**, no deployment.
 
-## Usage
+Pull requests into `main` should only be merged when the pipeline is green.
 
-### Authentication and roles
+## Build and test commands
 
-- Register as CLIENT or SELLER via `POST /auth/register`.
-- Log in via `POST /auth/login` to obtain a JWT and pass it in the `Authorization: Bearer <token>` header.
-- SELLER users can create, update, and delete only their own products and related media; CLIENT users can browse products.
+The CI pipeline and local developers should use the same commands.
 
-### Core flows
+### Backend (Spring Boot microservices)
 
-- CLIENT: register → login → browse products via `/products` and view details and images.
-- SELLER: register as seller → login → create products (`POST /products`) → upload images (`POST /media/images`) → manage own catalog.
+From repository root, per service:
 
-## API overview
+```bash
+cd backend/discovery-service      && ./mvnw clean verify
+cd backend/gateway-service       && ./mvnw clean verify
+cd backend/media-service         && ./mvnw clean verify
+cd backend/product-service       && ./mvnw clean verify
+cd backend/user-service          && ./mvnw clean verify
+```
 
-- **User Service**
-    - `POST /auth/register` – Register as client or seller.
-    - `POST /auth/login` – Obtain JWT.
-    - `GET /me` – Get current user profile.
+Conceptually, CI will iterate over these services and run `./mvnw clean verify` for each. Any failing service should fail the pipeline.
 
-- **Product Service**
-    - `GET /products` – List products (public).
-    - `GET /products/{id}` – Get product by id (public).
-    - `POST /products` – Create product (SELLER only).
-    - `PUT /products/{id}` – Update own product (SELLER only).
-    - `DELETE /products/{id}` – Delete own product (SELLER only).
+For tests only (if needed):
 
-- **Media Service**
-    - `POST /media/images` – Upload image for a product (SELLER only, `image/*`, ≤2MB).
-    - `GET /media/images/{id}` – Download image (public).
-    - `DELETE /media/images/{id}` – Delete image (owner optional).
+```bash
+cd backend/<service-name> && ./mvnw test
+```
 
-## Security
+### Frontend (Angular)
 
-The platform uses JWT authentication with tokens issued by the User Service and validated at the gateway and downstream services.
-Passwords are hashed with BCrypt, access is controlled by roles (CLIENT, SELLER), product and media ownership is enforced, and CORS/HTTPS are configured at the gateway level.
+From repository root:
 
-## Configuration
+Install dependencies:
 
-Key configuration includes MongoDB connection strings, JWT secret/keys, Kafka broker settings, and object storage credentials exposed as environment variables.
-Service-specific settings are defined in `application.yml` / `application-docker.yml`, and secrets should be provided via environment variables or secret management rather than committed files.
+```bash
+cd frontend
+npm ci
+```
 
-## Testing
+Run unit tests (CI-friendly, non-watch mode):
 
-Backend tests can be run with `./mvnw test` inside each service module.
-Frontend tests can be executed from the `frontend` folder with `npm test` or `ng test`, and additional integration tests can be wired to run against the dockerized stack.
+```bash
+cd frontend
+ng test --no-watch --no-progress
+```
 
-## Roadmap
+Build production bundle:
 
-- Shopping cart, orders, and payment integration.
-- Product search and filtering improvements.
-- User reviews and ratings.
+```bash
+cd frontend
+ng build --configuration production
+```
 
-## Created by
+These are the same commands that the Jenkins pipeline will run in the frontend stages.
 
-[Mayuree Reunsati](https://github.com/mareerray) <br>
-[Joon Kim](https://github.com/kurizma)
+## Local development
 
-[Back to top](#top)
+### Running backend services
+
+For development, you can run services individually with:
+
+```bash
+cd backend/<service-name>
+./mvnw spring-boot:run
+```
+
+Or use the provided scripts (if configured):
+
+```bash
+./start-backend.sh
+./stop-app.sh
+```
+
+### Running frontend
+
+For local development with live reload:
+
+```bash
+cd frontend
+npm ci
+npm start
+```
+
+Check `proxy.conf.json` and environment files for API base URLs and ports.
+
+### Docker Compose
+
+When fully wired, the application can be started with:
+
+```bash
+docker-compose up --build
+```
+
+This will build and run the backend microservices and frontend according to `docker-compose.yml`.
+
+## CI/CD plan (Jenkins)
+
+This section describes the intended Jenkins pipeline behavior.
+
+### Stages (high level)
+
+1. **Checkout**
+    - Pull code from primary remote (Gitea).
+2. **Backend build & test**
+    - For each service in `backend/`:
+        - Run `./mvnw clean verify`.
+3. **Frontend build & test**
+    - `npm ci`
+    - `ng test --no-watch --no-progress`
+    - `ng build --configuration production`
+4. **Package & deploy**
+    - Build Docker images for services and frontend.
+    - Deploy to target environment (local server / Docker host / cloud).
+5. **Post actions**
+    - Notify team (email or Slack) on success or failure.
+    - If deployment fails, trigger a rollback to the last known good version.
+
+Deployment and rollback scripts will be added under a `ci/` or `scripts/` directory as the pipeline evolves.
+
+## Remotes and hosting
+
+- **Primary remote**: self-hosted Git server (Gitea), used by Jenkins as the main source of truth.
+- **Secondary remote**: GitHub, used as an external mirror for backup and remote access.
+
+Local Git example:
+
+```bash
+git remote add origin  <gitea-url>
+git remote add github  <github-url>
+git push origin main
+git push github main
+```
+
+## Contribution and future work
+
+Planned improvements:
+
+- Add Jenkinsfile with full CI pipeline (build, test, deploy, notify).
+- Add environment-specific profiles for staging/production.
+- Parameterized builds (select environment, subset of services).
+- Distributed builds using multiple Jenkins agents.
+
+---
