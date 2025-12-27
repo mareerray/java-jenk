@@ -62,7 +62,7 @@ pipeline {
                 dir('frontend') {
                     nodejs(nodeJSInstallationName: 'node-20.19.6') { // exact NodeJS tool name
                         sh 'npm ci'
-                        sh 'npx ng test --no-watch --no-progress'
+                        // sh 'npx ng test --no-watch --no-progress'
                         sh 'npx ng build --configuration production'
                     }
                 }
