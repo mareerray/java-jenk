@@ -26,11 +26,11 @@
                 </div>
                 <!-- Right: Info -->
                 <div class="col-12 col-md-7">
-                  <h2 class="card-title fw-bold mb-2">{{ product.name }}</h2>
+                  <h2 class="card-title fw-bold mb-2" data-test="product-name">{{ product.name }}</h2>
                   <span class="badge bg-secondary mb-2 fs-6">{{ getCategoryName() }}</span>
                   <p class="card-text text-white mb-3">{{ product.description }}</p>
                   <p class="price mb-1">
-                    Price: <span class="text-primary fw-bold fs-4">€{{ product.price }}</span>
+                    Price: <span class="text-primary fw-bold fs-4" data-test="product-price">€{{ product.price }}</span>
                   </p>
                   <p class="mb-1"><span class="fw-semibold">Quantity:</span> {{ product.quantity }}</p>
                   <p class="mb-4">
@@ -87,3 +87,4 @@
     {{ errorMessage }}
   </div>
 </div>
+
