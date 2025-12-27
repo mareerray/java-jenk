@@ -21,4 +21,24 @@
     ✅ 5. Loading state works ✓ → UX + prevents double-submit
 
 ## 4. profile.component.spec.ts ← USER RETENTION  
+    ✅ 1. Component creates ✓ → Profile page loads
+    ✅ 2. Loads current user ✓ → Personal data shows
+    ✅ 3. Displays avatar ✓ → User identity visual
+    ✅ 4. Shows name + role ✓ → Account ownership confirmed
+    ✅ 5. Save button disabled invalid ✓ → Backend protected
+    ✅ 6. Success message shows ✓ → User feedback
+
 ## 5. product-listing.component.spec.ts ← BROWSING
+
+
+// STANDARD ROUTER MOCK (ALL COMPONENTS)
+.overrideProvider(Router, { 
+  useValue: {
+    createUrlTree: jasmine.createSpy('createUrlTree').and.returnValue({ toString: () => '/' }),
+    serializeUrl: jasmine.createSpy('serializeUrl').and.returnValue('/'),
+    navigate: jasmine.createSpy('navigate')
+  }
+})
+.overrideProvider(ActivatedRoute, { 
+  useValue: { snapshot: { paramMap: { get: () => null } } }
+})
