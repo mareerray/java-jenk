@@ -56,9 +56,13 @@ pipeline {
         stage('Frontend') {
             steps {
                 dir('frontend') {
-                    sh 'npm ci'
-                    sh 'npm test -- --watch=false --no-progress || ng test --no-watch --no-progress'
-                    sh 'ng build --configuration production'
+                    script {
+                        docker.image('node:20-alpine').inside {
+                            sh 'npm ci'
+                            sh 'npx ng test --no-watch --no-progress'
+                            sh 'npx ng build --configuration production'
+                        }
+                    }
                 }
             }
         }
