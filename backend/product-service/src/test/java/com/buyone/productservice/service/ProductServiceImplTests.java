@@ -316,26 +316,26 @@ class ProductServiceImplTests {
     }
     
     // -------- deleteProduct --------
-//
-//    @Test
-//    void deleteProduct_deletes_whenOwner() {
-//        String sellerId = "seller-1";
-//
-//        Product existing = Product.builder()
-//                .id("p1")
-//                .userId(sellerId)
-//                .build();
-//
-//        when(productRepository.findById("p1")).thenReturn(Optional.of(existing));
-//
-//        // Lenient, generic Kafka stub so Mockito ignores argument mismatch
-//        lenient().when(kafkaTemplate.send(anyString(), any()))
-//                .thenReturn(CompletableFuture.completedFuture(null));
-//
-//        productService.deleteProduct("p1", sellerId);
-//
-//        verify(productRepository).deleteById("p1");
-//    }
+
+    @Test
+    void deleteProduct_deletes_whenOwner() {
+        String sellerId = "seller-1";
+
+        Product existing = Product.builder()
+                .id("p1")
+                .userId(sellerId)
+                .build();
+
+        when(productRepository.findById("p1")).thenReturn(Optional.of(existing));
+
+        // Lenient, generic Kafka stub so Mockito ignores argument mismatch
+        lenient().when(kafkaTemplate.send(anyString(), any()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        productService.deleteProduct("p1", sellerId);
+
+        verify(productRepository).deleteById("p1");
+    }
     
     @Test
     void deleteProduct_throwsNotFound_whenMissing() {
