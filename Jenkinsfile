@@ -191,11 +191,13 @@ pipeline {
                                 docker tag product-service:${VERSION}   product-service:${STABLE_TAG}   || true
                                 docker tag media-service:${VERSION}     media-service:${STABLE_TAG}     || true
                             """
+
                             echo "Re-deploying using stable tag..."
 
                             withEnv(["IMAGE_TAG=${STABLE_TAG}"]) {
                                 sh 'docker compose -f docker-compose.yml up -d'
                             }
+
                         } catch (Exception e) {
                             echo "Deployment failed or crashed! Initiating rollback..."
                             echo "Reason: ${e.getMessage()}"
