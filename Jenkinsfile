@@ -201,24 +201,27 @@ pipeline {
                                     sh 'docker compose -f docker-compose.yml up -d'
                                 }
                                 echo "Rolled back to previous stable version."
-                                withEnv(["SLACK_WEBHOOK_URL=${SLACK_WEBHOOK}"]) {
+
+                                withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
                                     sh '''
-                                    curl -X POST -H "Content-type: application/json" --data "{
+                                    curl -sS -X POST -H "Content-type: application/json" --data "{
                                       \\"text\\": \\":information_source: Rollback SUCCESSFUL!\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}\\"
-                                    }" "${SLACK_WEBHOOK_URL}"
+                                    }" "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
                                     '''
                                 }
                             } catch (Exception rollbackErr) {
                                 echo "FATAL: Rollback failed!"
                                 echo "Reason: ${rollbackErr.getMessage()}"
-                                withEnv(["SLACK_WEBHOOK_URL=${SLACK_WEBHOOK}"]) {
+
+                                withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
                                     sh '''
-                                    curl -X POST -H "Content-type: application/json" --data "{
+                                    curl -sS -X POST -H "Content-type: application/json" --data "{
                                       \\"text\\": \\":rotating_light: Rollback FAILED\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}\\n*Reason:* see Jenkins logs\\"
-                                    }" "${SLACK_WEBHOOK_URL}"
+                                    }" "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
                                     '''
                                 }
                             }
+
                             error "Deployment failed - rollback executed."
                         }
                     }
@@ -233,7 +236,7 @@ pipeline {
                 junit 'backend/*/target/surefire-reports/*.xml'
                 archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
 
-                junit 'frontend/test-results/junit/*.xml'
+                junit allowEmptyResults: true, testResults: 'frontend/test-results/junit/*.xml'
                 archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
 
                 if (env.WORKSPACE) {
@@ -246,22 +249,22 @@ pipeline {
 
         success {
             echo "Build succeeded! Sending Slack notification..."
-            withEnv(["SLACK_WEBHOOK_URL=${SLACK_WEBHOOK}"]) {
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
                 sh '''
-                curl -v -X POST -H "Content-type: application/json" --data "{
+                curl -sS -X POST -H "Content-type: application/json" --data "{
                   \\"text\\": \\":white_check_mark: Build SUCCESS\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}\\"
-                }" "${SLACK_WEBHOOK_URL}"
+                }" "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
                 '''
             }
         }
 
         failure {
             echo "Build failed! Sending Slack notification..."
-            withEnv(["SLACK_WEBHOOK_URL=${SLACK_WEBHOOK}"]) {
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
                 sh '''
-                curl -v -X POST -H "Content-type: application/json" --data "{
+                curl -sS -X POST -H "Content-type: application/json" --data "{
                   \\"text\\": \\":x: Build FAILED\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}\\n*Result:* ${currentBuild.currentResult}\\"
-                }" "${SLACK_WEBHOOK_URL}"
+                }" "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
                 '''
             }
         }
