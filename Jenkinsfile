@@ -116,6 +116,7 @@ pipeline {
                 }
             }
         }
+
         /******************************
          * Deploy, verify, and rollback
          ******************************/
@@ -188,6 +189,43 @@ pipeline {
                 }
             }
         }
+    } // <--- end of stages
+
+    post {
+        always {
+            script {
+                // Backend JUnit reports
+                junit 'backend/*/target/surefire-reports/*.xml'
+                archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
+
+                // Frontend JUnit-style reports (adjust path to your Karma/JUnit output)
+                junit 'frontend/test-results/junit/*.xml'
+                archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
+
+                if (env.WORKSPACE) {
+                    cleanWs notFailBuild: true
+                } else {
+                    echo "No workspace available; skipping cleanWs"
+                }
+            }
+        }
+
+        success {
+            echo "Build succeeded! Sending Slack notification..."
+            sh """
+            curl -v -X POST -H 'Content-type: application/json' --data '{
+                "text": ":white_check_mark: Build SUCCESS\\\\n*Job:* ${env.JOB_NAME}\\\\n*Build:* ${env.BUILD_NUMBER}\\\\n*Branch:* ${params.BRANCH}"
+            }' ${env.SLACK_WEBHOOK}
+            """
+        }
+
+        failure {
+            echo "Build failed! Sending Slack notification..."
+            sh """
+            curl -v -X POST -H 'Content-type: application/json' --data '{
+                "text": ":x: Build FAILED\\\\n*Job:* ${env.JOB_NAME}\\\\n*Build:* ${env.BUILD_NUMBER}\\\\n*Branch:* ${params.BRANCH}\\\\n*Result:* ${currentBuild.currentResult}"
+            }' ${env.SLACK_WEBHOOK}
+            """
+        }
     }
 }
-// Edit Change
