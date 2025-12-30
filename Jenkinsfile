@@ -268,9 +268,9 @@ pipeline {
             echo "Build failed! Sending Slack notification..."
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
                 sh '''
-                    curl -sS -X POST -H "Content-type: application/json" --data '{
+                    curl -sS -X POST -H "Content-type: application/json" --data "{
                       "text": ":x: Build FAILED\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}\\n*Result:* ${currentBuild.currentResult}"
-                    }' "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
+                    }" "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
                 '''
             }
         }
