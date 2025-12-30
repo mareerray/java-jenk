@@ -237,44 +237,44 @@ pipeline {
     }
     // end of stages
 
-        post {
-            always {
-                script {
-                    junit 'backend/*/target/surefire-reports/*.xml'
-                    archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
+    post {
+        always {
+            script {
+                junit 'backend/*/target/surefire-reports/*.xml'
+                archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
 
-                    junit allowEmptyResults: true, testResults: 'frontend/test-results/junit/*.xml'
-                    archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
+                junit allowEmptyResults: true, testResults: 'frontend/test-results/junit/*.xml'
+                archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
 
-                    if (env.WORKSPACE) {
-                        cleanWs notFailBuild: true
-                    } else {
-                        echo "No workspace available; skipping cleanWs"
-                    }
+                if (env.WORKSPACE) {
+                    cleanWs notFailBuild: true
+                } else {
+                    echo "No workspace available; skipping cleanWs"
                 }
             }
+        }
 
-            success {
-                echo "Build succeeded! Sending Slack notification..."
-                withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
-                    sh """
-                        curl -sS -X POST -H 'Content-type: application/json' --data '{
-                          "text": ":white_check_mark: Build SUCCESS\\n*Job:* ${env.JOB_NAME}\\n*Build:* ${env.BUILD_NUMBER}\\n*Branch:* ${params.BRANCH}"
-                        }' "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
-                    """
-                }
+        success {
+            echo "Build succeeded! Sending Slack notification..."
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
+                sh """
+                    curl -sS -X POST -H 'Content-type: application/json' --data '{
+                      "text": ":white_check_mark: Build SUCCESS\\n*Job:* ${env.JOB_NAME}\\n*Build:* ${env.BUILD_NUMBER}\\n*Branch:* ${params.BRANCH}"
+                    }' "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
+                """
             }
+        }
 
-            failure {
-                echo "Build failed! Sending Slack notification..."
-                withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
-                    sh """
-                        curl -sS -X POST -H 'Content-type: application/json' --data '{
-                          "text": ":x: Build FAILED\\n*Job:* ${env.JOB_NAME}\\n*Build:* ${env.BUILD_NUMBER}\\n*Branch:* ${params.BRANCH}\\n*Result:* ${currentBuild.currentResult}"
-                        }' "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
-                    """
-                }
+        failure {
+            echo "Build failed! Sending Slack notification..."
+            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK_URL')]) {
+                sh """
+                    curl -sS -X POST -H 'Content-type: application/json' --data '{
+                      "text": ":x: Build FAILED\\n*Job:* ${env.JOB_NAME}\\n*Build:* ${env.BUILD_NUMBER}\\n*Branch:* ${params.BRANCH}\\n*Result:* ${currentBuild.currentResult}"
+                    }' "${SLACK_WEBHOOK_URL}" || echo "Slack notification failed (non-fatal)"
+                """
             }
         }
     }
 }
+
