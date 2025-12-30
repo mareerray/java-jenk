@@ -40,45 +40,88 @@ pipeline {
             }
         }
 
-        /***********************
-         * Backend microservices
-         ***********************/
-        stage('Backend - discovery-service') {
+        /*************************
+         * Backend build (no tests)
+         *************************/
+        stage('Backend Build - discovery-service') {
             steps {
                 dir('backend/discovery-service') {
-                    sh 'mvn clean verify'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        stage('Backend - gateway-service') {
+        stage('Backend Build - gateway-service') {
             steps {
                 dir('backend/gateway-service') {
-                    sh 'mvn clean verify'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        stage('Backend - user-service') {
+        stage('Backend Build - user-service') {
             steps {
                 dir('backend/user-service') {
-                    sh 'mvn clean verify'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        stage('Backend - product-service') {
+        stage('Backend Build - product-service') {
             steps {
                 dir('backend/product-service') {
-                    sh 'mvn clean verify'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
 
-        stage('Backend - media-service') {
+        stage('Backend Build - media-service') {
             steps {
                 dir('backend/media-service') {
-                    sh 'mvn clean verify'
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        /***********************
+         * Backend unit tests  *
+         ***********************/
+        stage('Backend Tests - discovery-service') {
+            steps {
+                dir('backend/discovery-service') {
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Backend Tests - gateway-service') {
+            steps {
+                dir('backend/gateway-service') {
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Backend Tests - user-service') {
+            steps {
+                dir('backend/user-service') {
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Backend Tests - product-service') {
+            steps {
+                dir('backend/product-service') {
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('Backend Tests - media-service') {
+            steps {
+                dir('backend/media-service') {
+                    sh 'mvn test'
                 }
             }
         }
@@ -89,10 +132,8 @@ pipeline {
         stage('Frontend') {
             steps {
                 dir('frontend') {
-                    // Use global NodeJS tool
                     nodejs(nodeJSInstallationName: 'node-20.19.6') {
                         sh 'npm ci'
-                        // Adjust test command as needed for Karma/Jasmine JUnit output
                         sh 'npm test -- --watch=false --browsers=ChromeHeadlessNoSandbox --no-progress'
                         sh 'npx ng build --configuration production'
                     }
@@ -109,7 +150,6 @@ pipeline {
                     echo "Building Docker images with tag: ${VERSION}"
                     dir("${env.WORKSPACE}") {
                         withEnv(["IMAGE_TAG=${VERSION}"]) {
-                            // Ensure docker-compose.yml uses ${IMAGE_TAG} for image tags
                             sh 'docker compose -f docker-compose.yml build'
                         }
                     }
@@ -127,14 +167,12 @@ pipeline {
                         try {
                             echo "Deploying version: ${VERSION}"
 
-                            // Deploy NEW version (do not down first to avoid hard downtime if possible)
                             withEnv(["IMAGE_TAG=${VERSION}"]) {
                                 sh 'docker compose -f docker-compose.yml up -d'
 
                                 echo "Waiting for services to stabilize..."
                                 sleep 15
 
-                                // Basic health check: fail if any container is in Exit state
                                 sh """
                                     if docker compose -f docker-compose.yml ps | grep "Exit"; then
                                         echo "Detected crashed containers!"
@@ -145,7 +183,6 @@ pipeline {
 
                             echo "Deployment verification passed. Tagging images as stable..."
 
-                            // Tag images with stable tag after successful verification
                             sh """
                                 docker tag frontend:${VERSION}          frontend:${STABLE_TAG}          || true
                                 docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} || true
@@ -159,14 +196,12 @@ pipeline {
                             echo "Deployment failed or crashed! Initiating rollback..."
                             echo "Reason: ${e.getMessage()}"
 
-                            // ROLLBACK: redeploy previous stable images
                             try {
                                 withEnv(["IMAGE_TAG=${STABLE_TAG}"]) {
                                     sh 'docker compose -f docker-compose.yml up -d'
                                 }
                                 echo "Rolled back to previous stable version."
 
-                                // Slack notification for successful rollback
                                 sh """
                                 curl -X POST -H 'Content-type: application/json' --data '{
                                     "text": ":information_source: Rollback SUCCESSFUL!\\n*Job:* ${env.JOB_NAME}\\n*Build:* ${env.BUILD_NUMBER}\\n*Branch:* ${params.BRANCH}"
@@ -182,23 +217,20 @@ pipeline {
                                 """
                             }
 
-                            // Mark build as failed after rollback attempt
                             error "Deployment failed - rollback executed."
                         }
                     }
                 }
             }
         }
-    } // <--- end of stages
+    } // end of stages
 
     post {
         always {
             script {
-                // Backend JUnit reports
                 junit 'backend/*/target/surefire-reports/*.xml'
                 archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
 
-                // Frontend JUnit-style reports (adjust path to your Karma/JUnit output)
                 junit 'frontend/test-results/junit/*.xml'
                 archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
 
