@@ -180,13 +180,13 @@ pipeline {
                             // Cleanup: Stop only the versioned containers (v14, v13, etc)
                             // but keep the stable ones running as backup
                             echo "Cleaning up old versioned containers..." 
-                            sh """
+                            sh '''
                                 withEnv(["IMAGE_TAG=${VERSION}"]) {
                                     docker compose -f docker-compose.yml down || true
                                 }                                
                                 sleep 3
                                 echo "Old versioned containers cleaned up"
-                            """
+                            '''
 
                             // Now deploy the new version
                             withEnv(["IMAGE_TAG=${VERSION}"]) {
