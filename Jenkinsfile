@@ -17,10 +17,10 @@ pipeline {
         STABLE_TAG = "stable"
     }
 
-    tools {
-        maven 'maven-3.9'
-        nodejs 'node-20.19.6'
-    }
+    // tools {
+    //     maven 'maven-3.9'
+    //     nodejs 'node-20.19.6'
+    // }
 
     stages {
 
