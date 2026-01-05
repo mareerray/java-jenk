@@ -238,21 +238,21 @@ pipeline {
     // end of stages
 
     post {
-        always {
-            script {
-                junit 'backend/*/target/surefire-reports/*.xml'
-                archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
+        // always {
+        //     script {
+        //         junit 'backend/*/target/surefire-reports/*.xml'
+        //         archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
 
-                junit allowEmptyResults: true, testResults: 'frontend/test-results/junit/*.xml'
-                archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
+        //         junit allowEmptyResults: true, testResults: 'frontend/test-results/junit/*.xml'
+        //         archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
 
-                if (env.WORKSPACE) {
-                    cleanWs notFailBuild: true
-                } else {
-                    echo "No workspace available; skipping cleanWs"
-                }
-            }
-        }
+        //         if (env.WORKSPACE) {
+        //             cleanWs notFailBuild: true
+        //         } else {
+        //             echo "No workspace available; skipping cleanWs"
+        //         }
+        //     }
+        // }
 
         success {
             echo "Build succeeded! Sending Slack notification..."
