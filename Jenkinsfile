@@ -2,6 +2,15 @@ pipeline {
     agent any
 
     /**********************
+     * Prevent concurrent builds
+     **********************/
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+        timeout(time: 1, unit: 'HOURS')
+    }
+
+    /**********************
      * Global configuration
      **********************/
     parameters {
