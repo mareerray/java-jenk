@@ -15,11 +15,11 @@ pipeline {
         // Image versioning
         VERSION    = "v${env.BUILD_NUMBER}"
         STABLE_TAG = "stable"
+                    SONARQUBE_TOKEN = credentials('sonarqube-token')
     }
 
     tools {
         maven 'maven-3.9'
-        nodejs 'node-20.19.6'
     }
 
     stages {
@@ -122,6 +122,19 @@ pipeline {
             steps {
                 dir('backend/media-service') {
                     sh 'mvn test'
+                }
+            }
+        }
+
+                /****************************
+         * SonarQube Code Quality     *
+         ****************************/
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('SonarQube') {
+                        sh 'mvn clean verify sonar:sonar -Dsonar.projectKey=safezone -Dsonar.sources=backend,frontend -Dsonar.tests=backend -DskipTests=false'
+                    }
                 }
             }
         }
