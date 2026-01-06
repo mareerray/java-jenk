@@ -161,6 +161,12 @@ pipeline {
             steps {
                 script {
                     withSonarQubeEnv('SonarQube Dev') {
+                        // Get reference to the installed SonarQube Scanner tool
+                        def scannerHome = tool name: 'SonarQube Scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                        
+                        // Add scanner to PATH
+                        env.PATH = "${scannerHome}/bin:${env.PATH}"
+                        
                         dir('backend/discovery-service') {
                             sh '''
                                 sonar-scanner \
@@ -270,15 +276,20 @@ pipeline {
         stage('SonarQube Analysis - Frontend') {
             steps {
                 dir('frontend') {
-                    withSonarQubeEnv('SonarQube Dev') {
-                        sh '''
-                            npm ci
-                            npx sonar-scanner \
-                                -Dsonar.projectKey=safe-zone-frontend \
-                                -Dsonar.projectName="Safe Zone - Frontend" \
-                                -Dsonar.sources=src \
-                                -Dsonar.exclusions=**/*.spec.ts,node_modules/** \
-                        '''
+                    script {
+                        withSonarQubeEnv('SonarQube Dev') {
+                            def scannerHome = tool name: 'SonarQube Scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                            env.PATH = "${scannerHome}/bin:${env.PATH}"
+                            
+                            sh '''
+                                npm ci
+                                sonar-scanner \
+                                    -Dsonar.projectKey=safe-zone-frontend \
+                                    -Dsonar.projectName="Safe Zone - Frontend" \
+                                    -Dsonar.sources=src \
+                                    -Dsonar.exclusions=**/*.spec.ts,node_modules/**
+                            '''
+                        }
                     }
                 }
             }
