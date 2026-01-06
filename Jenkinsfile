@@ -160,79 +160,102 @@ pipeline {
         stage('SonarQube Analysis - Backend') {
             steps {
                 script {
-                    // Analyze discovery-service
-                    dir('backend/discovery-service') {
-                        sh '''
-                            mvn sonar:sonar \
-                                -Dsonar.projectKey=safe-zone-discovery-service \
-                                -Dsonar.projectName="Safe Zone - Discovery Service" \
-                                -Dsonar.sources=src \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        '''
-                    }
-                    // Analyze gateway-service
-                    dir('backend/gateway-service') {
-                        sh '''
-                            mvn sonar:sonar \
-                                -Dsonar.projectKey=safe-zone-gateway-service \
-                                -Dsonar.projectName="Safe Zone - Gateway Service" \
-                                -Dsonar.sources=src \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        '''
-                    }
-                    // Analyze user-service
-                    dir('backend/user-service') {
-                        sh '''
-                            mvn sonar:sonar \
-                                -Dsonar.projectKey=safe-zone-user-service \
-                                -Dsonar.projectName="Safe Zone - User Service" \
-                                -Dsonar.sources=src \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        '''
-                    }
-                    // Analyze product-service
-                    dir('backend/product-service') {
-                        sh '''
-                            mvn sonar:sonar \
-                                -Dsonar.projectKey=safe-zone-product-service \
-                                -Dsonar.projectName="Safe Zone - Product Service" \
-                                -Dsonar.sources=src \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        '''
-                    }
-                    // Analyze media-service
-                    dir('backend/media-service') {
-                        sh '''
-                            mvn sonar:sonar \
-                                -Dsonar.projectKey=safe-zone-media-service \
-                                -Dsonar.projectName="Safe Zone - Media Service" \
-                                -Dsonar.sources=src \
-                                -Dsonar.host.url=${SONAR_HOST_URL} \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        '''
+                    withSonarQubeEnv('SonarQube Dev') {
+                        dir('backend/discovery-service') {
+                            sh 'mvn clean compile sonar:sonar'
+                        }
+                        dir('backend/gateway-service') {
+                            sh 'mvn clean compile sonar:sonar'
+                        }
+                        dir('backend/user-service') {
+                            sh 'mvn clean compile sonar:sonar'
+                        }
+                        dir('backend/product-service') {
+                            sh 'mvn clean compile sonar:sonar'
+                        }
+                        dir('backend/media-service') {
+                            sh 'mvn clean compile sonar:sonar'
+                        }
                     }
                 }
             }
         }
 
+        // stage('SonarQube Analysis - Backend') {
+        //     steps {
+        //         script {
+        //             // Analyze discovery-service
+        //             dir('backend/discovery-service') {
+        //                 sh '''
+        //                     mvn sonar:sonar \
+        //                         -Dsonar.projectKey=safe-zone-discovery-service \
+        //                         -Dsonar.projectName="Safe Zone - Discovery Service" \
+        //                         -Dsonar.sources=src \
+        //                         -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                         -Dsonar.login=${SONAR_TOKEN}
+        //                 '''
+        //             }
+        //             // Analyze gateway-service
+        //             dir('backend/gateway-service') {
+        //                 sh '''
+        //                     mvn sonar:sonar \
+        //                         -Dsonar.projectKey=safe-zone-gateway-service \
+        //                         -Dsonar.projectName="Safe Zone - Gateway Service" \
+        //                         -Dsonar.sources=src \
+        //                         -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                         -Dsonar.login=${SONAR_TOKEN}
+        //                 '''
+        //             }
+        //             // Analyze user-service
+        //             dir('backend/user-service') {
+        //                 sh '''
+        //                     mvn sonar:sonar \
+        //                         -Dsonar.projectKey=safe-zone-user-service \
+        //                         -Dsonar.projectName="Safe Zone - User Service" \
+        //                         -Dsonar.sources=src \
+        //                         -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                         -Dsonar.login=${SONAR_TOKEN}
+        //                 '''
+        //             }
+        //             // Analyze product-service
+        //             dir('backend/product-service') {
+        //                 sh '''
+        //                     mvn sonar:sonar \
+        //                         -Dsonar.projectKey=safe-zone-product-service \
+        //                         -Dsonar.projectName="Safe Zone - Product Service" \
+        //                         -Dsonar.sources=src \
+        //                         -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                         -Dsonar.login=${SONAR_TOKEN}
+        //                 '''
+        //             }
+        //             // Analyze media-service
+        //             dir('backend/media-service') {
+        //                 sh '''
+        //                     mvn sonar:sonar \
+        //                         -Dsonar.projectKey=safe-zone-media-service \
+        //                         -Dsonar.projectName="Safe Zone - Media Service" \
+        //                         -Dsonar.sources=src \
+        //                         -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                         -Dsonar.login=${SONAR_TOKEN}
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
+
         stage('SonarQube Analysis - Frontend') {
             steps {
                 dir('frontend') {
-                    sh '''
-                        npm install -g @angular/cli
-                        npm ci
-                        npx sonar-scanner \
-                            -Dsonar.projectKey=safe-zone-frontend \
-                            -Dsonar.projectName="Safe Zone - Frontend" \
-                            -Dsonar.sources=src \
-                            -Dsonar.exclusions=**/*.spec.ts,node_modules/** \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN}
-                    '''
+                    withSonarQubeEnv('SonarQube Dev') {
+                        sh '''
+                            npm ci
+                            npx sonar-scanner \
+                                -Dsonar.projectKey=safe-zone-frontend \
+                                -Dsonar.projectName="Safe Zone - Frontend" \
+                                -Dsonar.sources=src \
+                                -Dsonar.exclusions=**/*.spec.ts,node_modules/** \
+                        '''
+                    }
                 }
             }
         }
