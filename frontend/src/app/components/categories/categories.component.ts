@@ -17,11 +17,11 @@ import { UserResponse } from '../../models/users/user-response.model';
   imports: [CommonModule, ProductGridCardComponent],
 })
 export class CategoriesComponent {
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private categoryService = inject(CategoryService);
-  private productService = inject(ProductService);
-  private userService = inject(UserService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly categoryService = inject(CategoryService);
+  private readonly productService = inject(ProductService);
+  private readonly userService = inject(UserService);
 
   selectedCategorySlug: string | null = null;
   categories: Category[] = [];
@@ -101,7 +101,7 @@ export class CategoriesComponent {
       if (!this.sellers.has(id)) {
         this.userService.getUserById(id).subscribe({
           next: (user) => {
-            if (user && user.role === 'SELLER') {
+            if (user?.role === 'SELLER') {
               this.sellers.set(id, user);
             }
           },

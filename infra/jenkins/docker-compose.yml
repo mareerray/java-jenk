@@ -13,6 +13,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - JAVA_OPTS=-Xmx2048m -Xms1024m
+    networks:
+      - java-jenk_sonarnet 
 
 volumes:
   jenkins_home:
+
+networks:
+  java-jenk_sonarnet: # Tells Docker to use existing network, not create new one
+    external: true  
+    name: java-jenk_sonarnet

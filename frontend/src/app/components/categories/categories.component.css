@@ -5,8 +5,6 @@
 
 /* Sidebar */
 .sidebar {
-  /* width: 220px; */
-  /* border-right: 2px solid var(--link-hover); */
   padding: 2.5rem 0;
 }
 
@@ -142,24 +140,3 @@
     margin: 0.5rem 0;
   }
 }
-
-
-
-
-/* .card:hover {
-  box-shadow: 0 8px 24px rgba(69, 85, 108, 0.18);
-  transform: translateY(-4px) scale(1.03);
-  transition:
-    box-shadow 0.2s,
-    transform 0.2s;
-  cursor: pointer;
-  background-color: rgba(7, 76, 140, 0.357);
-}
-
-.cat-bg {
-  background-color: transparent;
-}
-
-h5 , .category-icon {
-  color: var(--link-complementary);
-} */

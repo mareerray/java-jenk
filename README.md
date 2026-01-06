@@ -1,187 +1,326 @@
-# Buy-One E‑commerce Platform (CI/CD)
+# Safe Zone - Microservices CI/CD Pipeline
 
-This repository contains the **Buy-One** e‑commerce platform, implemented as a Spring Boot microservices backend and an Angular frontend, designed to be deployed through a Jenkins-based CI/CD pipeline.
+Complete automated CI/CD pipeline with Jenkins and SonarQube code quality analysis.
 
-## Tech stack
+# Project Overview
 
-- **Backend**
-    - Java + Spring Boot (multiple microservices)
-    - Maven (using `mvnw` wrapper)
-    - JUnit for automated tests
-- **Frontend**
-    - Angular (Angular CLI)
-    - Jasmine/Karma for unit tests
-- **Infrastructure**
-    - Docker for containerization
-    - Docker Compose for local orchestration
-    - Jenkins (planned) for CI/CD
+**Backend Services** (Spring Boot + Maven):
+- Discovery Service (service registry)
+- Gateway Service (API gateway)
+- User Service (user management)
+- Product Service (product catalog)
+- Media Service (media handling)
 
-## Repository structure
+**Frontend** (Angular + npm):
+- Web UI for the Safe Zone application
 
-From the repository root:
+**CI/CD Pipeline**:
+- Automated builds and tests
+- Code quality analysis with SonarQube
+- Docker image building
+- Automated deployment
+- Slack notifications
 
-- `backend/`
-    - `discovery-service/`
-    - `gateway-service/`
-    - `media-service/`
-    - `product-service/`
-    - `user-service/`
-- `frontend/` – Angular client
-- `docker-compose.yml` – local stack (backends + frontend + dependencies)
-- `start-app.sh`, `start-backend.sh`, `start-frontend.sh`, `stop-app.sh` – local helper scripts
+# Prerequisites
 
-Each backend service is an independent Spring Boot Maven project with its own `pom.xml` and `mvnw` wrapper.
+- Docker (version 20.10+)
+- Docker Compose (version 1.29+)
+- Ports 9090 (Jenkins) and 9000 (SonarQube) available
+- 4GB RAM minimum
 
-## Branching and workflow
+# Installation & Startup
 
-This repo is structured for a simple, CI-friendly workflow:
+### Step 1: Start SonarQube (First - it takes longer to initialize)
+````
+docker-compose -f sonarqube-compose.yml up -d
+````
 
-- `main`
-    - Always stable and deployable.
-    - Jenkins runs **full pipeline** (build + test all microservices and frontend, then deploy).
-- `feature/*`
-    - Used for feature development.
-    - Jenkins runs **build + tests only**, no deployment.
+- Wait 60 seconds for SonarQube to initialize.
 
-Pull requests into `main` should only be merged when the pipeline is green.
+- URL: http://localhost:9000
 
-## Build and test commands
+>Username: admin
+Password: admin
 
-The CI pipeline and local developers should use the same commands.
+### Step 2: Start Jenkins (Second - it will auto-connect to SonarQube)
 
-### Backend (Spring Boot microservices)
+````
+docker-compose up -d
+````
+- Wait 60 seconds for Jenkins to start and automatically connect to SonarQube network.
 
-From repository root, per service:
+- URL: http://localhost:9090
 
-```bash
-cd backend/discovery-service      && ./mvnw clean verify
-cd backend/gateway-service       && ./mvnw clean verify
-cd backend/media-service         && ./mvnw clean verify
-cd backend/product-service       && ./mvnw clean verify
-cd backend/user-service          && ./mvnw clean verify
-```
+>Initial Setup: First login will prompt for initial password (check docker logs jenkins)
 
-Conceptually, CI will iterate over these services and run `./mvnw clean verify` for each. Any failing service should fail the pipeline.
+## Running the Pipeline
+- Open Jenkins: http://localhost:9090
 
-For tests only (if needed):
+- Select the safe-zone pipeline job
 
-```bash
-cd backend/<service-name> && ./mvnw test
-```
+- Click "Build Now"
 
-### Frontend (Angular)
+- Monitor the pipeline in Pipeline Overview
 
-From repository root:
+Pipeline Stages
+The build will execute these stages automatically:
 
-Install dependencies:
+````
+✓ Checkout                                    (get code from Git)
+  ├─ ✓ Backend Build - discovery-service
+  ├─ ✓ Backend Build - gateway-service
+  ├─ ✓ Backend Build - user-service
+  ├─ ✓ Backend Build - product-service
+  └─ ✓ Backend Build - media-service
+  
+  ├─ ✓ Backend Tests - discovery-service
+  ├─ ✓ Backend Tests - gateway-service
+  ├─ ✓ Backend Tests - user-service
+  ├─ ✓ Backend Tests - product-service
+  └─ ✓ Backend Tests - media-service
+  
+  └─ ✓ Frontend - Tests Included
+  
+  ├─ ✓ SonarQube Analysis - Backend          (analyzes all 5 services)
+  └─ ✓ SonarQube Analysis - Frontend         (analyzes Angular app)
+  
+  ├─ ✓ Build Images                          (Docker image building)
+  ├─ ✓ Deploy & Verify                       (deployment + health checks)
+  └─ ✓ Post Actions                          (Slack notifications)
+  ````
+Build Time: Approximately 2-3 minutes for full pipeline
 
-```bash
-cd frontend
-npm ci
-```
+## Viewing Results
+#### Jenkins Pipeline
+- URL: http://localhost:9090/job/safe-zone/
 
-Run unit tests (CI-friendly, non-watch mode):
+- View all builds, logs, and stage details
 
-```bash
-cd frontend
-ng test --no-watch --no-progress
-```
+- Click on any build number to see details
 
-Build production bundle:
+#### SonarQube Code Quality
+- URL: http://localhost:9000/projects
 
-```bash
-cd frontend
-ng build --configuration production
-```
+- Projects Analyzed:
 
-These are the same commands that the Jenkins pipeline will run in the frontend stages.
+    - Safe Zone - Discovery Service
 
-## Local development
+    - Safe Zone - Gateway Service
 
-### Running backend services
+    - Safe Zone - User Service
 
-For development, you can run services individually with:
+    - Safe Zone - Product Service
 
-```bash
-cd backend/<service-name>
-./mvnw spring-boot:run
-```
+    - Safe Zone - Media Service
 
-Or use the provided scripts (if configured):
+    - Safe Zone - Frontend
 
-```bash
-./start-backend.sh
-./stop-app.sh
-```
+- Each project shows:
 
-### Running frontend
+    - ✅ Code quality metrics
 
-For local development with live reload:
+    - ✅ Security vulnerabilities
 
-```bash
-cd frontend
-npm ci
-npm start
-```
+    - ✅ Code coverage
 
-Check `proxy.conf.json` and environment files for API base URLs and ports.
+    - ✅ Maintainability ratings
 
-### Docker Compose
+    - ✅ Test coverage
 
-When fully wired, the application can be started with:
+# Architecture
+### Docker Network Setup
+Jenkins and SonarQube are automatically connected via the java-jenk_sonarnet Docker network:
 
-```bash
-docker-compose up --build
-```
+- Jenkins Container: jenkins (http://jenkins:8080 internally)
 
-This will build and run the backend microservices and frontend according to `docker-compose.yml`.
+- SonarQube Container: sonarqube (http://sonarqube:9000 internally)
 
-## CI/CD plan (Jenkins)
+- Database Container: sonarqube-db (PostgreSQL)
 
-This section describes the intended Jenkins pipeline behavior.
+- Network: java-jenk_sonarnet (bridge network)
 
-### Stages (high level)
+>Key: No manual docker network connect commands needed - fully automated in docker-compose.yml
 
-1. **Checkout**
-    - Pull code from primary remote (Gitea).
-2. **Backend build & test**
-    - For each service in `backend/`:
-        - Run `./mvnw clean verify`.
-3. **Frontend build & test**
-    - `npm ci`
-    - `ng test --no-watch --no-progress`
-    - `ng build --configuration production`
-4. **Package & deploy**
-    - Build Docker images for services and frontend.
-    - Deploy to target environment (local server / Docker host / cloud).
-5. **Post actions**
-    - Notify team (email or Slack) on success or failure.
-    - If deployment fails, trigger a rollback to the last known good version.
+### How Jenkins Talks to SonarQube
+Inside the pipeline, Jenkins:
 
-Deployment and rollback scripts will be added under a `ci/` or `scripts/` directory as the pipeline evolves.
+1. Compiles Java code with Maven → generates target/classes
 
-## Remotes and hosting
+2. Runs tests → generates test reports
 
-- **Primary remote**: self-hosted Git server (Gitea), used by Jenkins as the main source of truth.
-- **Secondary remote**: GitHub, used as an external mirror for backup and remote access.
+3. Executes sonar-scanner with compiled classes
 
-Local Git example:
+4. Sends analysis to SonarQube via: http://sonarqube:9000 (internal Docker DNS)
 
-```bash
-git remote add origin  <gitea-url>
-git remote add github  <github-url>
-git push origin main
-git push github main
-```
+5. SonarQube stores results in PostgreSQL database
 
-## Contribution and future work
+6. Results visible in SonarQube dashboard
 
-Planned improvements:
+### Configuration Files
+- docker-compose.yml (Jenkins)
+````
+services:
+  jenkins:
+    build: .                              # Builds from Dockerfile
+    networks:
+      - java-jenk_sonarnet              # Auto-connects to SonarQube network
+`````
 
-- Add Jenkinsfile with full CI pipeline (build, test, deploy, notify).
-- Add environment-specific profiles for staging/production.
-- Parameterized builds (select environment, subset of services).
-- Distributed builds using multiple Jenkins agents.
+- sonarqube-compose.yml (SonarQube)
+````
+services:
+  sonarqube:
+    image: sonarqube:community
+    networks:
+      - java-jenk_sonarnet
+  sonarqube-db:
+    image: postgres:15-alpine
+    networks:
+      - java-jenk_sonarnet
 
----
+networks:
+  java-jenk_sonarnet:
+    driver: bridge
+`````
 
+- Jenkinsfile (Pipeline Definition)
+    - Defines all pipeline stages
+
+    - Configures SonarQube Scanner
+
+    - Sets up Maven builds and tests
+
+    - Handles Docker image building
+
+    - Manages deployment and notifications
+
+# Troubleshooting
+### 1. Containers won't start
+````
+# Check logs
+docker logs jenkins
+docker logs sonarqube
+
+# Verify ports are available
+docker ps
+`````
+
+### 2. Jenkins can't reach SonarQube
+This is typically a network issue. Verify:
+
+````
+# Check network exists
+docker network ls | grep java-jenk_sonarnet
+
+# Check containers are on network
+docker network inspect java-jenk_sonarnet
+`````
+
+#### Common causes:
+
+- SonarQube not fully initialized (wait 60+ seconds)
+
+- Containers on different networks (restart both)
+
+- Port 9000 or 9090 already in use
+
+### 3. SonarQube Analysis fails with "java.io.IOException"
+Ensure all 3 containers are running:
+
+````
+docker ps
+`````
+
+Should show:
+
+- jenkins container (port 9090)
+
+- sonarqube container (port 9000)
+
+- sonarqube-db container (internal)
+
+### 4. SonarQube Analysis fails with "compiled classes not found"
+This is already fixed in the Jenkinsfile with:
+
+```groovy
+-Dsonar.java.binaries=target/classes
+`````
+
+The -Dsonar.java.binaries parameter tells SonarQube where compiled Java classes are located.
+
+# Cleanup
+## Stop all containers
+````
+docker-compose down
+docker-compose -f sonarqube-compose.yml down
+`````
+
+## Remove all data (databases, volumes)
+````
+docker-compose down -v
+docker-compose -f sonarqube-compose.yml down -v
+`````
+
+## Remove images (optional)
+````
+docker rmi jenkins:latest
+docker rmi sonarqube:community
+docker rmi postgres:15-alpine
+`````
+
+# Technology Stack
+|Component	|Technology	|Version |
+| ---------- | --------- | ------- |
+|CI/CD	| Jenkins	|Latest |
+|Code Quality	|SonarQube Community	|v25.12.0|
+|Backend Framework	|Spring Boot	|3.x|
+|Backend Build	|Maven	|3.9|
+|Frontend Framework	|Angular	|17+|
+|Frontend Build	|npm	|10+|
+|Database (SonarQube)	|PostgreSQL	|15|
+|Containerization	|Docker	|20.10+|
+|Orchestration	|Docker Compose	|1.29+|
+
+
+# Key Features
+✅ Fully Automated: No manual network configuration needed
+
+✅ Parallel Builds: All services build simultaneously (faster CI)
+
+✅ Code Quality: All 6 projects analyzed by SonarQube
+
+✅ Security Scanning: Vulnerabilities detected automatically
+
+✅ Instant Feedback: Developers get analysis results 
+immediately
+
+✅ Reproducible: Same setup works on any machine
+
+✅ Auditor-Friendly: No manual steps, just docker-compose up
+
+# Audit Readiness
+This project is production-ready for audits and evaluations:
+
+✅ All services containerized with Docker
+
+✅ No manual configuration steps required
+
+✅ Fully automated CI/CD pipeline
+
+✅ Code quality metrics tracked
+
+✅ Security vulnerabilities identified
+
+✅ Clear documentation provided
+
+✅ Reproducible setup with docker-compose
+
+To evaluate: Just run docker-compose up and watch the pipeline!
+
+
+# Created By
+
+- **Mayuree Reunsati** - [GitHub](https://github.com/mareerray)
+- **Joon Kim** - [GitHub](https://github.com/kurizma)
+
+Last Updated: January 6, 2026
