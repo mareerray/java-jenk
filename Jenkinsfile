@@ -162,25 +162,49 @@ pipeline {
                 script {
                     withSonarQubeEnv('SonarQube Dev') {
                         dir('backend/discovery-service') {
-                            sh 'mvn clean compile sonar:sonar'
+                            sh '''
+                                sonar-scanner \
+                                    -Dsonar.projectKey=safe-zone-discovery-service \
+                                    -Dsonar.projectName="Safe Zone - Discovery Service" \
+                                    -Dsonar.sources=src
+                            '''
                         }
                         dir('backend/gateway-service') {
-                            sh 'mvn clean compile sonar:sonar'
+                            sh '''
+                                sonar-scanner \
+                                    -Dsonar.projectKey=safe-zone-gateway-service \
+                                    -Dsonar.projectName="Safe Zone - Gateway Service" \
+                                    -Dsonar.sources=src
+                            '''
                         }
                         dir('backend/user-service') {
-                            sh 'mvn clean compile sonar:sonar'
+                            sh '''
+                                sonar-scanner \
+                                    -Dsonar.projectKey=safe-zone-user-service \
+                                    -Dsonar.projectName="Safe Zone - User Service" \
+                                    -Dsonar.sources=src
+                            '''
                         }
                         dir('backend/product-service') {
-                            sh 'mvn clean compile sonar:sonar'
+                            sh '''
+                                sonar-scanner \
+                                    -Dsonar.projectKey=safe-zone-product-service \
+                                    -Dsonar.projectName="Safe Zone - Product Service" \
+                                    -Dsonar.sources=src
+                            '''
                         }
                         dir('backend/media-service') {
-                            sh 'mvn clean compile sonar:sonar'
+                            sh '''
+                                sonar-scanner \
+                                    -Dsonar.projectKey=safe-zone-media-service \
+                                    -Dsonar.projectName="Safe Zone - Media Service" \
+                                    -Dsonar.sources=src
+                            '''
                         }
                     }
                 }
             }
         }
-
         // stage('SonarQube Analysis - Backend') {
         //     steps {
         //         script {
