@@ -94,8 +94,6 @@ body {
 
 .card:hover {
   box-shadow: 0 8px 24px rgba(69, 85, 108, 0.18);
-  /*transform: translateY(-4px) scale(1.03); /*moves the card upwards by 4 pixels (translateY(-4px)) and slightly enlarges it by 3% (scale(1.03))
-    transition: box-shadow 0.2s, transform 0.2s; /*smooth transition for both box-shadow and transform effects*/
 }
 
 .btn-primary {
@@ -107,8 +105,7 @@ body {
 
 .btn-outline-primary {
   color: var(--link);
-  border-color: var(--link);
-  border: 0.5px solid;
+  border: 0.5px solid var(--link);
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
 }
