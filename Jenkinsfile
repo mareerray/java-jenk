@@ -389,8 +389,8 @@ pipeline {
                 }
                 // Post GitHub status
                 withCredentials([string(credentialsId: 'github-safezone-token', variable: 'GITHUB_TOKEN')]) {
-                    githubStatus(context: 'safezone', state: currentBuild.result, message: "Build ${currentBuild.result}")
-                    githubStatus(context: 'safe-quality-gate', state: currentBuild.result, message: "Quality gate ${currentBuild.result}")
+                    setGitHubPullRequestStatus(context: 'safezone', state: currentBuild.result, message: "Build ${currentBuild.result}")
+                    setGitHubPullRequestStatus(context: 'safe-quality-gate', state: currentBuild.result, message: "Quality gate ${currentBuild.result}")
                 }
             }
         }
