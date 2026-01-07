@@ -77,11 +77,6 @@
   background-color: var(--link-hover);
 }
 
-/* Main content spacing */
-.product-grid-wrapper {
-  padding-left: 0;
-}
-
 .card-title {
   color: var(--link);
 }

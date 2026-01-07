@@ -2,17 +2,13 @@
 
 :root {
   --primary: #8b5cf6;
-  /* --primary: #9f0aea; */
   --primary-dark: #7c3aed;
-  /* --primary-dark: #9f0aea; */
   --background: #0f172a;
   --card-bg: #243145;
   --text-primary: #cfd4d8;
   --text-secondary: #f907ed;
   --border: #334155;
   --link: #69f0ae;
-  /* --link: #abed3a; */
-  /* --link: #52ed3a; */
   --link: #0aeb7e;
   --link-hover: #198754;
   --link-complementary: #bf2b67;
@@ -38,9 +34,6 @@ body {
   background-size:
     20px 20px,
     100% 100%;
-  /* background-image: radial-gradient(circle, #5c0067 0%, #00d4ff 100%); */
-  /* background-color: #f0f0f0;  */
-  /* background-image: radial-gradient(ellipse, #7c3aed67 7%, transparent 5%); */
   color: var(--text-primary);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -175,7 +168,6 @@ body {
 /* Target the dropdown menu */
 .custom-avatar-dropdown .dropdown-menu {
   background-color: #343a40;
-  /* color: #f8f9fa; */
   font-size: 0.85rem;
   min-width: 100px;
 }
