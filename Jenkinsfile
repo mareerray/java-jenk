@@ -410,8 +410,6 @@ pipeline {
                 archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
                 junit allowEmptyResults: true, testResults: '**/test-results/junit/*.xml'
-                // junit '**/target/surefire-reports/*.xml'
-                // junit '**/test-results/junit/*.xml'
                 
                 if (env.GIT_COMMIT) {
                     withCredentials([string(credentialsId: 'github-safezone-token', variable: 'GITHUB_TOKEN')]) {
