@@ -29,10 +29,10 @@ pipeline {
         STABLE_TAG = "stable"
     }
 
-    // tools {
-    //     maven 'maven-3.9'
-    //     nodejs 'node-20.19.6'
-    // }
+    tools {
+        maven 'maven-3.9'
+        nodejs 'node-20.19.6'
+    }
 
     stages {
 
@@ -144,7 +144,7 @@ pipeline {
         stage('Frontend - Tests Included') {
             steps {
                 dir('frontend') {
-                    nodejs(nodeJSInstallationName: 'node-20.19.6') 
+                    // nodejs(nodeJSInstallationName: 'node-20.19.6') 
                     
                         sh 'npm ci'
                         sh 'npm test'
