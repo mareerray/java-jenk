@@ -142,14 +142,12 @@ pipeline {
          * Frontend *
          ************/
         stage('Frontend - Tests Included') {
-            options { timeout(time: 6, unit: 'MINUTES') }
             steps {
                 dir('frontend') {
                     // nodejs(nodeJSInstallationName: 'node-20.19.6') 
                     
                         sh 'npm ci'
-                        sh 'npm test'
-                        // sh 'npm test -- --watch=false --browsers=ChromeHeadlessNoSandbox --no-progress'
+                        sh 'npm test -- --watch=false --browsers=ChromeHeadlessNoSandbox --no-progress'
                         sh 'ls -la test-results/junit/ || echo "No test-results dir"'
                         sh 'npx ng build --configuration production'
                     
