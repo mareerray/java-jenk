@@ -386,9 +386,9 @@ pipeline {
             script {
                 archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
                 archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
-                junit 'backend/*/target/surefire-reports/*.xml'
-                junit 'frontend/test-results/junit/*.xml'
-                
+                junit '**/target/surefire-reports/*.xml'
+                junit '**/test-results/junit/*.xml'
+
                 cleanWs notFailBuild: true
                 
                 def buildState = currentBuild.currentResult?.toLowerCase() ?: 'success'
