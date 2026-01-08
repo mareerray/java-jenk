@@ -333,12 +333,12 @@ pipeline {
                                 sh 'docker compose build frontend || exit 1'
                                 sh 'docker compose build --pull'  
                                 sh '''
-                                    docker tag frontend:${VERSION} frontend:${STABLE_TAG} frontend:build-${BUILD_NUMBER}
-                                    docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} discovery-service:build-${BUILD_NUMBER}
-                                    docker tag gateway-service:${VERSION} gateway-service:${STABLE_TAG} gateway-service:build-${BUILD_NUMBER}
-                                    docker tag user-service:${VERSION} user-service:${STABLE_TAG} user-service:build-${BUILD_NUMBER}
-                                    docker tag product-service:${VERSION} product-service:${STABLE_TAG} product-service:build-${BUILD_NUMBER}
-                                    docker tag media-service:${VERSION} media-service:${STABLE_TAG} media-service:build-${BUILD_NUMBER}
+                                    docker tag frontend:${VERSION} frontend:${STABLE_TAG} frontend:build-${BUILD_NUMBER} || true
+                                    docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} discovery-service:build-${BUILD_NUMBER} || true
+                                    docker tag gateway-service:${VERSION} gateway-service:${STABLE_TAG} gateway-service:build-${BUILD_NUMBER} || true
+                                    docker tag user-service:${VERSION} user-service:${STABLE_TAG} user-service:build-${BUILD_NUMBER} || true
+                                    docker tag product-service:${VERSION} product-service:${STABLE_TAG} product-service:build-${BUILD_NUMBER} || true
+                                    docker tag media-service:${VERSION} media-service:${STABLE_TAG} media-service:build-${BUILD_NUMBER} || true
                                 '''
                                 
                                 // Deploy new version for verification
@@ -370,7 +370,7 @@ pipeline {
                             withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
                             sh """
                                 curl -sS -X POST -H 'Content-type: application/json' \\
-                                    --data '{\"text\":\"🚨 Rollback #${BUILD_NUMBER} → \$STABLE_TAG\"}' \$SLACK_WEBHOOK || true
+                                    --data '{\"text\":\"🚨 Rollback #${BUILD_NUMBER} → \$STABLE_TAG\"}' \$SLACK_WEBHOOK 
                             """
                         }
                         currentBuild.result = 'UNSTABLE'
@@ -380,157 +380,6 @@ pipeline {
                 }
             }
         }
-    
-        //                 def cleanBranch = "${BRANCH ?: GIT_BRANCH ?: 'main'}".replaceAll(/^origin\//, '')
-                        
-        //                 // Cleanup
-        //                 sh 'docker compose down || true'
-        //                 sleep 5
-
-        //                 try {
-        //                     echo "Deploying ${VERSION}"
-                            
-        //                     withEnv(["IMAGE_TAG=${VERSION}"]) {
-        //                         sh 'docker compose up -d'
-        //                         sleep 20
-                                
-        //                         // Health check
-        //                         sh '''
-        //                             if docker compose ps | grep -q "Exit"; then
-        //                                 echo "Containers crashed!"
-        //                                 exit 1
-        //                             fi
-        //                         '''
-        //                     }
-
-        //                     // Tag ALL images stable
-        //                     sh """
-        //                         docker tag frontend:${VERSION} frontend:${STABLE_TAG} || true
-        //                         docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} || true
-        //                         docker tag gateway-service:${VERSION} gateway-service:${STABLE_TAG} || true
-        //                         docker tag user-service:${VERSION} user-service:${STABLE_TAG} || true
-        //                         docker tag product-service:${VERSION} product-service:${STABLE_TAG} || true
-        //                         docker tag media-service:${VERSION} media-service:${STABLE_TAG} || true
-        //                     """
-
-        //                     // Deploy stable
-        //                     withEnv(["IMAGE_TAG=${STABLE_TAG}"]) {
-        //                         sh 'docker compose up -d'
-        //                     }
-        //                     echo "✅ Deployed stable"
-
-        //                 } catch (Exception e) {
-        //                     echo "Deploy failed: ${e.message}"
-                            
-        //                     withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
-        //                         sh '''
-        //                             # Targeted cleanup only
-        //                             docker stop $(docker ps -q --filter "name=v${BUILD_NUMBER}") 2>/dev/null || true
-        //                             docker rm $(docker ps -aq --filter "name=v${BUILD_NUMBER}") 2>/dev/null || true
-                                    
-        //                             if docker images | grep -q ":[s]table"; then
-        //                                 IMAGE_TAG=${STABLE_TAG} docker compose up -d --pull never
-        //                                 echo "✅ Rolled back"
-        //                                 curl -sS -X POST -H "Content-type: application/json" \\
-        //                                 --data "{\"text\":\":ok_hand: Rollback SUCCESS #${BUILD_NUMBER}\"}" \\
-        //                                 ${SLACK_WEBHOOK} || true
-        //                             else
-        //                                 echo "⚠️ No stable"
-        //                                 curl -sS -X POST -H "Content-type: application/json" \\
-        //                                 --data "{\"text\":\":warning: No stable #${BUILD_NUMBER}\"}" \\
-        //                                 ${SLACK_WEBHOOK} || true
-        //                             fi
-        //                         '''
-        //                     }
-        //                     // Green build after rollback
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Deploy & Verify') {
-        //     steps {
-        //         script {
-        //             dir("${env.WORKSPACE}") {
-        //                 // Cleanup old containers
-        //                 echo "Cleaning up old versioned containers..."
-        //                 sh '''
-        //                     docker compose -f docker-compose.yml down || true
-        //                     sleep 3
-        //                 '''
-
-        //                 try {
-        //                     echo "Deploying version: ${VERSION}"
-
-        //                     // Now deploy the new version
-        //                     withEnv(["IMAGE_TAG=${VERSION}"]) {
-        //                         sh 'docker compose -f docker-compose.yml up -d'
-
-        //                         echo "Waiting for services to stabilize..."
-        //                         sleep 15
-
-        //                         sh """
-        //                             if docker compose -f docker-compose.yml ps | grep "Exit"; then
-        //                                 echo "Detected crashed containers!"
-        //                                 exit 1
-        //                             fi
-        //                         """
-        //                     }
-
-        //                     echo "Deployment verification passed. Tagging images as stable..."
-
-        //                     sh """
-        //                         docker tag frontend:${VERSION}          frontend:${STABLE_TAG}          || true
-        //                         docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} || true
-        //                         docker tag gateway-service:${VERSION}   gateway-service:${STABLE_TAG}   || true
-        //                         docker tag user-service:${VERSION}      user-service:${STABLE_TAG}      || true
-        //                         docker tag product-service:${VERSION}   product-service:${STABLE_TAG}   || true
-        //                         docker tag media-service:${VERSION}     media-service:${STABLE_TAG}     || true
-        //                     """
-
-        //                     echo "Re-deploying using stable tag..."
-
-        //                     withEnv(["IMAGE_TAG=${STABLE_TAG}"]) {
-        //                         sh 'docker compose -f docker-compose.yml up -d'
-        //                     }
-
-        //                 } catch (Exception e) {
-        //                     echo "Deployment failed or crashed! Initiating rollback..."
-        //                     echo "Reason: ${e.getMessage()}"
-
-        //                     try {
-        //                         withEnv(["IMAGE_TAG=${STABLE_TAG}"]) {
-        //                             sh 'docker compose -f docker-compose.yml up -d'
-        //                         }
-        //                         echo "Rolled back to previous stable version."
-
-        //                         withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
-        //                             sh '''
-        //                             curl -sS -X POST -H "Content-type: application/json" --data "{
-        //                                 \\"text\\": \\":information_source: Rollback SUCCESSFUL!\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}\\"
-        //                             }" "${SLACK_WEBHOOK}" || echo "Slack notification failed (non-fatal)"
-        //                             '''
-        //                         }
-        //                     } catch (Exception rollbackErr) {
-        //                         echo "FATAL: Rollback failed!"
-        //                         echo "Reason: ${rollbackErr.getMessage()}"
-
-        //                         withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
-        //                             sh '''
-        //                             curl -sS -X POST -H "Content-type: application/json" --data "{
-        //                                 \\"text\\": \\":rotating_light: Rollback FAILED\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}\\n*Reason:* see Jenkins logs\\"
-        //                             }" "${SLACK_WEBHOOK}" || echo "Slack notification failed (non-fatal)"
-        //                             '''
-        //                         }
-        //                     }
-
-        //                     error "Deployment failed - rollback executed."
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
     }
     // end of stages
 
