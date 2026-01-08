@@ -20,9 +20,7 @@ pipeline {
     environment {
         // Credentials
         SLACK_WEBHOOK = credentials('webhook-slack-safe-zone')
-
-        // SONAR_TOKEN = credentials('sonarqube-token')
-        // SONAR_HOST_URL = credentials('sonarqube-host-url')
+        BRANCH = "${env.BRANCH_NAME ?: env.GIT_BRANCH ?: params.BRANCH ?: 'main'}"
 
         // Image versioning
         VERSION    = "v${env.BUILD_NUMBER}"
@@ -155,6 +153,32 @@ pipeline {
             }
         }
 
+        /************
+         * Test Failure Handling → Early Slack → Skip Sonar/deploy → Post FAILURE *
+         ************/
+        stage('Test Summary') {
+            steps {
+                script {
+                    def testFailed = false
+                    try {
+                        sh 'find . -name "*.xml" -path "*/surefire-reports/*.xml" | head -1 && echo "Tests passed" || testFailed = true'
+                    } catch (e) {
+                        testFailed = true
+                    }
+                    if (testFailed) {
+                        withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
+                            sh '''
+                                curl -sS -X POST -H "Content-type: application/json" --data "{
+                                    \\"text\\": \\":x: TESTS FAILED!\\n*Job:* ${JOB_NAME}\\n*Build:* ${BUILD_NUMBER}\\n*Branch:* ${BRANCH}
+                                }" "${SLACK_WEBHOOK}"
+                            '''
+                        }
+                        error "Tests failed - aborting deploy"
+                    }
+                }
+            }
+        }
+
 
         /****************************
         * SonarQube Code Analysis *
@@ -257,7 +281,7 @@ pipeline {
         }
 
         /****************************
-         * Quality Gate Check       *
+         * Quality Gate Check → Skip deploy → Post FAILURE Slack *
          ****************************/
         stage('Quality Gate Check') {
             steps {
