@@ -97,6 +97,8 @@ services:
     container_name: frontend-${IMAGE_TAG:-latest}
     ports: ["4200:443"]
     depends_on: [gateway-service]
+  frontend-broken:
+    image: frontend:v999-broken-nonexistent
 
 volumes:
   kafka_data:
