@@ -417,7 +417,7 @@ pipeline {
                     sh """
                         curl -sS -X POST \\
                             -H 'Content-type: application/json' \\
-                            -d '{"text":"${emoji} *${buildState.toUpperCase()}*\\\\nJob: ${JOB_NAME}\\\\nBuild: #${BUILD_NUMBER}\\\\nBranch: ${BRANCH ?: GIT_BRANCH}\\\\nCommit: <https://github.com/mareerray/java-jenk/commit/${GIT_COMMIT}|${GIT_COMMIT[0..7]}>"}' \\
+                            -d '{"text":"${emoji} *${buildState.toUpperCase()}*\\nJob: ${JOB_NAME}\\nBuild: #${BUILD_NUMBER}\\nBranch: ${BRANCH ?: GIT_BRANCH}\\nCommit: <https://github.com/mareerray/java-jenk/commit/${GIT_COMMIT}|${GIT_COMMIT[0..7]}>"}' \\
                             \$SLACK_WEBHOOK || true
                     """
                 }
