@@ -378,8 +378,7 @@ pipeline {
                                         ${SLACK_WEBHOOK} || true**
                                     fi
                                 '''
-                            **}**
-                            // Remove error line for green build
+                            }// Remove error line for green build
                         }
                     }
                 }
