@@ -320,71 +320,135 @@ pipeline {
                     dir("${env.WORKSPACE}") {
                         def cleanBranch = "${BRANCH ?: GIT_BRANCH ?: 'main'}".replaceAll(/^origin\//, '')
                         
-                        // Cleanup
+                        // Cleanup old containers
                         sh 'docker compose down || true'
-                        sleep 5
+                        sleep 3
 
                         try {
-                            echo "Deploying ${VERSION}"
+                            echo "Building and tagging ${VERSION} as potential stable"
                             
+                            // Build ALL services, tag as VERSION and STABLE
                             withEnv(["IMAGE_TAG=${VERSION}"]) {
+                                sh 'docker compose build --pull always'
+                                sh '''
+                                    docker tag frontend:${VERSION} frontend:${STABLE_TAG}
+                                    docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG}
+                                    docker tag gateway-service:${VERSION} gateway-service:${STABLE_TAG}
+                                    docker tag user-service:${VERSION} user-service:${STABLE_TAG}
+                                    docker tag product-service:${VERSION} product-service:${STABLE_TAG}
+                                    docker tag media-service:${VERSION} media-service:${STABLE_TAG}
+                                '''
+                                
+                                // Deploy new version for verification
                                 sh 'docker compose up -d'
                                 sleep 20
                                 
-                                // Health check
+                                // Strong health check
                                 sh '''
-                                    if docker compose ps | grep -q "Exit"; then
-                                        echo "Containers crashed!"
-                                        exit 1
-                                    fi
+                                    timeout 30 bash -c "until docker compose ps | grep -q Up && curl -f http://localhost:4200 || curl -f http://localhost:8080/health; do sleep 2; done" || exit 1
+                                    if docker compose ps | grep -q "Exit"; then exit 1; fi
                                 '''
                             }
-
-                            // Tag ALL images stable
-                            sh """
-                                docker tag frontend:${VERSION} frontend:${STABLE_TAG} || true
-                                docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} || true
-                                docker tag gateway-service:${VERSION} gateway-service:${STABLE_TAG} || true
-                                docker tag user-service:${VERSION} user-service:${STABLE_TAG} || true
-                                docker tag product-service:${VERSION} product-service:${STABLE_TAG} || true
-                                docker tag media-service:${VERSION} media-service:${STABLE_TAG} || true
-                            """
-
-                            // Deploy stable
-                            withEnv(["IMAGE_TAG=${STABLE_TAG}"]) {
-                                sh 'docker compose up -d'
-                            }
-                            echo "✅ Deployed stable"
+                            echo "✅ New deploy verified - promote to stable"
+                            currentBuild.result = 'SUCCESS'
 
                         } catch (Exception e) {
-                            echo "Deploy failed: ${e.message}"
+                            echo "❌ Deploy failed: ${e.message} - Rolling back to ${STABLE_TAG}"
+                            
+                            // Rollback: Always deploy known stable
+                            sh """
+                                docker compose down || true
+                                IMAGE_TAG=${STABLE_TAG} docker compose up -d --pull never
+                                sleep 10
+                                docker compose ps  # Verify
+                            """
                             
                             withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
-                                sh '''
-                                    # Targeted cleanup only
-                                    docker stop $(docker ps -q --filter "name=v${BUILD_NUMBER}") 2>/dev/null || true
-                                    docker rm $(docker ps -aq --filter "name=v${BUILD_NUMBER}") 2>/dev/null || true
-                                    
-                                    if docker images | grep -q ":[s]table"; then
-                                        IMAGE_TAG=${STABLE_TAG} docker compose up -d --pull never
-                                        echo "✅ Rolled back"
-                                        curl -sS -X POST -H "Content-type: application/json" \\
-                                        --data "{\"text\":\":ok_hand: Rollback SUCCESS #${BUILD_NUMBER}\"}" \\
-                                        ${SLACK_WEBHOOK} || true
-                                    else
-                                        echo "⚠️ No stable"
-                                        curl -sS -X POST -H "Content-type: application/json" \\
-                                        --data "{\"text\":\":warning: No stable #${BUILD_NUMBER}\"}" \\
-                                        ${SLACK_WEBHOOK} || true
-                                    fi
-                                '''
+                                sh """
+                                    curl -sS -X POST -H 'Content-type: application/json' \\
+                                    --data "{\"text\":\":rollback: Rollback to ${STABLE_TAG} SUCCESS #${BUILD_NUMBER}\"}" \\
+                                    \${SLACK_WEBHOOK} || true
+                                """
                             }
-                            // Green build after rollback
+                            currentBuild.result = 'UNSTABLE'  // Not FAILURE to show rollback worked
+                            throw e  // Mark stage failed but build unstable
                         }
                     }
                 }
             }
         }
+
+        // stage('Deploy & Verify') {
+        //     steps {
+        //         script {
+        //             dir("${env.WORKSPACE}") {
+        //                 def cleanBranch = "${BRANCH ?: GIT_BRANCH ?: 'main'}".replaceAll(/^origin\//, '')
+                        
+        //                 // Cleanup
+        //                 sh 'docker compose down || true'
+        //                 sleep 5
+
+        //                 try {
+        //                     echo "Deploying ${VERSION}"
+                            
+        //                     withEnv(["IMAGE_TAG=${VERSION}"]) {
+        //                         sh 'docker compose up -d'
+        //                         sleep 20
+                                
+        //                         // Health check
+        //                         sh '''
+        //                             if docker compose ps | grep -q "Exit"; then
+        //                                 echo "Containers crashed!"
+        //                                 exit 1
+        //                             fi
+        //                         '''
+        //                     }
+
+        //                     // Tag ALL images stable
+        //                     sh """
+        //                         docker tag frontend:${VERSION} frontend:${STABLE_TAG} || true
+        //                         docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} || true
+        //                         docker tag gateway-service:${VERSION} gateway-service:${STABLE_TAG} || true
+        //                         docker tag user-service:${VERSION} user-service:${STABLE_TAG} || true
+        //                         docker tag product-service:${VERSION} product-service:${STABLE_TAG} || true
+        //                         docker tag media-service:${VERSION} media-service:${STABLE_TAG} || true
+        //                     """
+
+        //                     // Deploy stable
+        //                     withEnv(["IMAGE_TAG=${STABLE_TAG}"]) {
+        //                         sh 'docker compose up -d'
+        //                     }
+        //                     echo "✅ Deployed stable"
+
+        //                 } catch (Exception e) {
+        //                     echo "Deploy failed: ${e.message}"
+                            
+        //                     withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
+        //                         sh '''
+        //                             # Targeted cleanup only
+        //                             docker stop $(docker ps -q --filter "name=v${BUILD_NUMBER}") 2>/dev/null || true
+        //                             docker rm $(docker ps -aq --filter "name=v${BUILD_NUMBER}") 2>/dev/null || true
+                                    
+        //                             if docker images | grep -q ":[s]table"; then
+        //                                 IMAGE_TAG=${STABLE_TAG} docker compose up -d --pull never
+        //                                 echo "✅ Rolled back"
+        //                                 curl -sS -X POST -H "Content-type: application/json" \\
+        //                                 --data "{\"text\":\":ok_hand: Rollback SUCCESS #${BUILD_NUMBER}\"}" \\
+        //                                 ${SLACK_WEBHOOK} || true
+        //                             else
+        //                                 echo "⚠️ No stable"
+        //                                 curl -sS -X POST -H "Content-type: application/json" \\
+        //                                 --data "{\"text\":\":warning: No stable #${BUILD_NUMBER}\"}" \\
+        //                                 ${SLACK_WEBHOOK} || true
+        //                             fi
+        //                         '''
+        //                     }
+        //                     // Green build after rollback
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         // stage('Deploy & Verify') {
         //     steps {
