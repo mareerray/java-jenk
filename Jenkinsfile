@@ -412,13 +412,14 @@ pipeline {
                 
                 def buildState = currentBuild.currentResult?.toLowerCase() ?: 'success'
                 def ghState = (buildState == 'success') ? 'success' : 'failure'
+                def cleanBranch = "${BRANCH ?: GIT_BRANCH ?: 'main'}".replaceAll(/^origin\//, '')
 
                 withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
                     def emoji = (buildState == 'success') ? ':white_check_mark:' : ':x:'
                     sh """
                         curl -sS -X POST \\
                             -H 'Content-type: application/json' \\
-                            -d '{"text":"${emoji} *${buildState.toUpperCase()}*\\nJob: ${JOB_NAME}\\nBuild: #${BUILD_NUMBER}\\nBranch: ${BRANCH ?: GIT_BRANCH}\\nCommit: <https://github.com/mareerray/java-jenk/commit/${GIT_COMMIT}|${GIT_COMMIT[0..7]}>"}' \\
+                            -d '{"text":"${emoji} *${buildState.toUpperCase()}*\\nJob: ${JOB_NAME}\\nBuild: #${BUILD_NUMBER}\\nBranch: ${cleanBRANCH}\\nCommit: <https://github.com/mareerray/java-jenk/commit/${GIT_COMMIT}|${GIT_COMMIT[0..7]}>"}' \\
                             \$SLACK_WEBHOOK || true
                     """
                 }
