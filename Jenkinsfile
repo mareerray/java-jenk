@@ -409,15 +409,26 @@ pipeline {
     post {
         always {
             script {
+                
+                def buildState = currentBuild.currentResult?.toLowerCase() ?: 'success'
+                def ghState = (buildState == 'success') ? 'success' : 'failure'
+
+                withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
+                    def emoji = (buildState == 'success') ? ':white_check_mark:' : ':x:'
+                    sh """
+                        curl -sS -X POST \\
+                            -H 'Content-type: application/json' \\
+                            -d '{"text":"${emoji} *${buildState.toUpperCase()}*\\nJob: ${JOB_NAME}\\nBuild: #${BUILD_NUMBER}\\nBranch: ${BRANCH ?: GIT_BRANCH}\\nCommit: <https://github.com/mareerray/java-jenk/commit/${GIT_COMMIT}|${GIT_COMMIT[0..7]}>"}' \\
+                            \$SLACK_WEBHOOK || true
+                    """
+                }
+
+                cleanWs notFailBuild: true
+
                 archiveArtifacts artifacts: 'backend/*/target/surefire-reports/*.xml', allowEmptyArchive: true
                 archiveArtifacts artifacts: 'frontend/test-results/junit/*.xml', allowEmptyArchive: true
                 junit '**/target/surefire-reports/*.xml'
                 junit '**/test-results/junit/*.xml'
-
-                cleanWs notFailBuild: true
-                
-                def buildState = currentBuild.currentResult?.toLowerCase() ?: 'success'
-                def ghState = (buildState == 'success') ? 'success' : 'failure'
                 
                 if (env.GIT_COMMIT) {
                     withCredentials([string(credentialsId: 'github-safezone-token', variable: 'GITHUB_TOKEN')]) {
@@ -434,16 +445,6 @@ pipeline {
                                 https://api.github.com/repos/mareerray/java-jenk/statuses/\${GIT_COMMIT}
                         """
                     }
-                }
-                
-                withCredentials([string(credentialsId: 'webhook-slack-safe-zone', variable: 'SLACK_WEBHOOK')]) {
-                    def emoji = (buildState == 'success') ? ':white_check_mark:' : ':x:'
-                    sh """
-                        curl -sS -X POST \\
-                            -H 'Content-type: application/json' \\
-                            -d '{"text":"${emoji} *${buildState.toUpperCase()}*\\nJob: ${JOB_NAME}\\nBuild: #${BUILD_NUMBER}\\nBranch: ${BRANCH ?: GIT_BRANCH}\\nCommit: <https://github.com/mareerray/java-jenk/commit/${GIT_COMMIT}|${GIT_COMMIT[0..7]}>"}' \\
-                            \$SLACK_WEBHOOK || true
-                    """
                 }
             }
         }
