@@ -91,18 +91,18 @@ services:
       SERVER_PORT: 8678
 
   # === FRONTEND ===
-  frontend:
-      build: ./frontend
-      image: frontend:v999-broken-nonexistent
-      container_name: frontend-v999-broken
-      ports: ["4200:443"]
-      depends_on: [gateway-service]
   # frontend:
-  #   build: ./frontend
-  #   image: frontend:${IMAGE_TAG:-latest}
-  #   container_name: frontend-${IMAGE_TAG:-latest}
-  #   ports: ["4200:443"]
-  #   depends_on: [gateway-service]
+  #     build: ./frontend
+  #     image: frontend:v999-broken-nonexistent
+  #     container_name: frontend-v999-broken
+  #     ports: ["4200:443"]
+  #     depends_on: [gateway-service]
+  frontend:
+    build: ./frontend
+    image: frontend:${IMAGE_TAG:-latest}
+    container_name: frontend-${IMAGE_TAG:-latest}
+    ports: ["4200:443"]
+    depends_on: [gateway-service]
 
 volumes:
   kafka_data:

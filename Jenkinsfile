@@ -329,7 +329,9 @@ pipeline {
                             
                             // Build ALL services, tag as VERSION and STABLE
                             withEnv(["IMAGE_TAG=${VERSION}"]) {
-                                sh 'docker compose build --pull always'
+                                // Fail fast if frontend can't build/pull
+                                sh 'docker compose build frontend || exit 1'
+                                sh 'docker compose build --pull always'  
                                 sh '''
                                     docker tag frontend:${VERSION} frontend:${STABLE_TAG} frontend:build-${BUILD_NUMBER}
                                     docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} discovery-service:build-${BUILD_NUMBER}
