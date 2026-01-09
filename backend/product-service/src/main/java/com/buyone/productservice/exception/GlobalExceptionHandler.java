@@ -78,7 +78,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
         // In production, log this exception instead of printing!
-        ex.printStackTrace();
         String cause = ex.getCause() != null ? ex.getCause().toString() : "No root cause";
         String fullMessage = (ex.getMessage() != null ? ex.getMessage() : "Unexpected server error")
                 + " [" + cause + "]";

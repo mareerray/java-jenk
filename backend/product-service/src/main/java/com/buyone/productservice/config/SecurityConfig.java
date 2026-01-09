@@ -11,7 +11,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         System.out.println("!!! SecurityConfig loaded, CSRF disabled !!!");
         http
-            .csrf(csrf -> csrf.disable())
+            // .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
