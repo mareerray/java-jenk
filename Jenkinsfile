@@ -311,7 +311,7 @@ pipeline {
                     echo "Building Docker images with tag: ${VERSION}"
                     dir("${env.WORKSPACE}") {
                         withEnv(["IMAGE_TAG=${VERSION}"]) {
-                            sh 'docker compose -f docker-compose.yml build'
+                            sh 'docker compose -f docker-compose.yml build --parallel --progress=plain'
                         }
                     }
                 }
@@ -341,7 +341,7 @@ pipeline {
                             withEnv(["IMAGE_TAG=${VERSION}"]) {
                                 // Fail fast if frontend can't build/pull
                                 sh 'docker compose build frontend || exit 1'
-                                sh 'docker compose build --pull'  
+                                sh 'docker compose build --pull --parallel --progress=plain'  
                                 sh '''
                                     docker tag frontend:${VERSION} frontend:${STABLE_TAG} frontend:build-${BUILD_NUMBER} || true
                                     docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} discovery-service:build-${BUILD_NUMBER} || true
