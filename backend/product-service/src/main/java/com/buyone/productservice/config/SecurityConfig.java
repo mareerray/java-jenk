@@ -9,10 +9,10 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+    // private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        logger.info("!!! SecurityConfig loaded, CSRF disabled !!!");
+        // logger.info("!!! SecurityConfig loaded, CSRF disabled !!!");
         http
             // .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
