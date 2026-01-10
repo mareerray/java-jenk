@@ -199,6 +199,7 @@ pipeline {
                                         -Dsonar.projectName="Safe Zone - Discovery Service" \
                                         -Dsonar.sources=src \
                                         -Dsonar.java.binaries=target/classes \
+                                        -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
@@ -210,6 +211,7 @@ pipeline {
                                         -Dsonar.projectName="Safe Zone - Gateway Service" \
                                         -Dsonar.sources=src \
                                         -Dsonar.java.binaries=target/classes \
+                                        -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
@@ -221,6 +223,7 @@ pipeline {
                                         -Dsonar.projectName="Safe Zone - User Service" \
                                         -Dsonar.sources=src \
                                         -Dsonar.java.binaries=target/classes \
+                                        -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
@@ -232,6 +235,7 @@ pipeline {
                                         -Dsonar.projectName="Safe Zone - Product Service" \
                                         -Dsonar.sources=src \
                                         -Dsonar.java.binaries=target/classes \
+                                        -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
@@ -243,6 +247,7 @@ pipeline {
                                         -Dsonar.projectName="Safe Zone - Media Service" \
                                         -Dsonar.sources=src \
                                         -Dsonar.java.binaries=target/classes \
+                                        -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
@@ -271,7 +276,7 @@ pipeline {
                                         -Dsonar.projectKey=safe-zone-frontend \
                                         -Dsonar.projectName="Safe Zone - Frontend" \
                                         -Dsonar.sources=src \
-                                        -Dsonar.exclusions=**/*.spec.ts,node_modules/**,dist/**,coverage/** \
+                                        -Dsonar.exclusions=**/*.spec.ts,node_modules/**,dist/**,coverage/**,**/.env,**/.env* \
                                         -Dsonar.cpd.exclusions=**/*.spec.ts,node_modules/** \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
