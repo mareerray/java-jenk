@@ -228,18 +228,13 @@ pipeline {
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
                             }
-                            dir('backend/product-service') {
-                                sh '''
-                                    sonar-scanner \
-                                        -Dsonar.projectKey=safe-zone-product-service \
-                                        -Dsonar.projectName="Safe Zone - Product Service" \
-                                        -Dsonar.sources=src \
-                                        -Dsonar.java.binaries=target/classes \
-                                        -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
-                                        -Dsonar.host.url=${SONAR_HOST} \
-                                        -Dsonar.token=${SONAR_TOKEN}
-                                '''
-                            }
+							dir('backend/product-service') {
+								sh """
+									sonar-scanner \
+									  -Dsonar.host.url=${SONAR_HOST} \
+									  -Dsonar.token=${SONAR_TOKEN}
+								"""
+							}
                             dir('backend/media-service') {
                                 sh '''
                                     sonar-scanner \
