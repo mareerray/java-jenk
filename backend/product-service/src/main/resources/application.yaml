@@ -8,11 +8,11 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   data:
     mongodb:
-      uri: "mongodb+srv://Cluster05093:.qwe.qwe.qwe@cluster05093.dh3rmhg.mongodb.net/buy-one?retryWrites=true&w=majority&appName=Cluster05093"
+      uri: ${ATLAS_URI}
   security:
     user:
-      name: user
-      password: password
+      name: ${SPRING_SECURITY_USER_NAME:user}
+      password: ${SPRING_SECURITY_USER_PASSWORD}
 
 eureka:
   client:
