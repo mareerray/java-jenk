@@ -88,7 +88,6 @@ public class GlobalExceptionHandler {
     // 500: Fallback for unhandled exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        ex.printStackTrace();
         String cause = ex.getCause() != null ? ex.getCause().toString() : "No root cause";
         String fullMessage = (ex.getMessage() != null ? ex.getMessage() : "Unexpected server error")
                 + " [" + cause + "]";
