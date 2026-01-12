@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 class CategoryServiceImplTests {
         
     private static final String SLUG_1 = "slug-1";
+    private static final String CAT_1 = "Cat 1";
 
     @Mock
     private CategoryRepository categoryRepository;
@@ -33,7 +34,7 @@ class CategoryServiceImplTests {
     @Test
     void getAllCategories_mapsEntitiesToResponses() {
         Category c1 = Category.builder()
-                .id("c1").slug(SLUG_1).name("Cat 1")
+                .id("c1").slug(SLUG_1).name(CAT_1)
                 .icon("icon1").description("desc1")
                 .build();
         Category c2 = Category.builder()
@@ -52,7 +53,7 @@ class CategoryServiceImplTests {
     @Test
     void getCategoryById_returnsResponse_whenFound() {
         Category c = Category.builder()
-                .id("c1").slug(SLUG_1).name("Cat 1")
+                .id("c1").slug(SLUG_1).name(CAT_1)
                 .icon("icon1").description("desc1")
                 .build();
         when(categoryRepository.findById("c1")).thenReturn(Optional.of(c));
@@ -60,7 +61,7 @@ class CategoryServiceImplTests {
         CategoryResponse result = categoryService.getCategoryById("c1");
         
         assertThat(result.id()).isEqualTo("c1");
-        assertThat(result.name()).isEqualTo("Cat 1");
+        assertThat(result.name()).isEqualTo(CAT_1);
     }
     
     @Test
