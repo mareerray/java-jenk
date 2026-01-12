@@ -24,6 +24,9 @@ class CategoryServiceImplTests {
         
     private static final String SLUG_1 = "slug-1";
     private static final String CAT_1 = "Cat 1";
+    private static final String ERROR_MSG = "Category not found";
+    private static final String NEW_ICON = "new-icon";
+    private static final String NEW_DESC = "new-desc";
 
     @Mock
     private CategoryRepository categoryRepository;
@@ -70,7 +73,7 @@ class CategoryServiceImplTests {
         
         assertThatThrownBy(() -> categoryService.getCategoryById("missing"))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Category not found");
+                .hasMessageContaining(ERROR_MSG);
     }
     
     @Test
@@ -88,7 +91,7 @@ class CategoryServiceImplTests {
         
         assertThatThrownBy(() -> categoryService.deleteCategory("c1"))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Category not found");
+                .hasMessageContaining(ERROR_MSG);
     }
     
     @Test
@@ -100,15 +103,15 @@ class CategoryServiceImplTests {
         
         UpdateCategoryRequest req = new UpdateCategoryRequest(
                 "New",
-                "new-icon",
-                "new-desc"
+                NEW_ICON,
+                NEW_DESC
         );
         
         when(categoryRepository.findById("c1")).thenReturn(Optional.of(existing));
         
         Category saved = Category.builder()
                 .id("c1").slug(SLUG_1).name("New")
-                .icon("new-icon").description("new-desc")
+                .icon(NEW_ICON).description(NEW_DESC)
                 .build();
         when(categoryRepository.save(any(Category.class))).thenReturn(saved);
         
@@ -119,17 +122,17 @@ class CategoryServiceImplTests {
         Category toSave = captor.getValue();
         
         assertThat(toSave.getName()).isEqualTo("New");
-        assertThat(toSave.getIcon()).isEqualTo("new-icon");
-        assertThat(result.description()).isEqualTo("new-desc");
+        assertThat(toSave.getIcon()).isEqualTo(NEW_ICON);
+        assertThat(result.description()).isEqualTo(NEW_DESC);
     }
     
     @Test
     void updateCategory_throwsNotFound_whenMissing() {
-        UpdateCategoryRequest req = new UpdateCategoryRequest("New", "icon", "desc");
+        UpdateCategoryRequest req = new UpdateCategoryRequest("New", NEW_ICON, NEW_DESC);
         when(categoryRepository.findById("c1")).thenReturn(Optional.empty());
         
         assertThatThrownBy(() -> categoryService.updateCategory("c1", req))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Category not found");
+                .hasMessageContaining(ERROR_MSG);
     }
 }
