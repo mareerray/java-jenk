@@ -21,7 +21,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          secret: "oogabooga123oogabooga123oogabooga123!"
+          secret: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_SECRET}
   servlet:
     multipart:
       max-file-size: 2MB    # each file must be ≤ 2 MB
@@ -37,7 +37,7 @@ eureka:
 
 app:
   media:
-      public-base-url: "https://pub-0695601915114c88a20b5aa2ba5091cd.r2.dev"
+    public-base-url: "https://pub-0695601915114c88a20b5aa2ba5091cd.r2.dev"
   kafka:
     topic:
       product-deleted: product.deleted
