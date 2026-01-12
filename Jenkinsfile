@@ -25,6 +25,11 @@ pipeline {
         // Image versioning
         VERSION    = "v${env.BUILD_NUMBER}"
         STABLE_TAG = "stable"
+
+		// Shared Maven repo on the agent disk
+		MAVEN_REPO_LOCAL = "${env.JENKINS_HOME}/.m2/repository"
+		// Optional: shared npm cache
+		NPM_CONFIG_CACHE = "${env.JENKINS_HOME}/.npm"
     }
 
     tools {
@@ -56,7 +61,7 @@ pipeline {
         stage('Backend Build - discovery-service') {
             steps {
                 dir('backend/discovery-service') {
-                    sh 'mvn clean package -DskipTests'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests"
                 }
             }
         }
@@ -64,7 +69,7 @@ pipeline {
         stage('Backend Build - gateway-service') {
             steps {
                 dir('backend/gateway-service') {
-                    sh 'mvn clean package -DskipTests'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests"
                 }
             }
         }
@@ -72,7 +77,7 @@ pipeline {
         stage('Backend Build - user-service') {
             steps {
                 dir('backend/user-service') {
-                    sh 'mvn clean package -DskipTests'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests"
                 }
             }
         }
@@ -80,7 +85,7 @@ pipeline {
         stage('Backend Build - product-service') {
             steps {
                 dir('backend/product-service') {
-                    sh 'mvn clean package -DskipTests'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests"
                 }
             }
         }
@@ -88,7 +93,7 @@ pipeline {
         stage('Backend Build - media-service') {
             steps {
                 dir('backend/media-service') {
-                    sh 'mvn clean package -DskipTests'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} clean package -DskipTests"
                 }
             }
         }
@@ -99,7 +104,7 @@ pipeline {
         stage('Backend Tests - discovery-service') {
             steps {
                 dir('backend/discovery-service') {
-                    sh 'mvn test'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test"
                 }
             }
         }
@@ -107,7 +112,7 @@ pipeline {
         stage('Backend Tests - gateway-service') {
             steps {
                 dir('backend/gateway-service') {
-                    sh 'mvn test'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test"
                 }
             }
         }
@@ -115,7 +120,7 @@ pipeline {
         stage('Backend Tests - user-service') {
             steps {
                 dir('backend/user-service') {
-                    sh 'mvn test'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test"
                 }
             }
         }
@@ -123,7 +128,7 @@ pipeline {
         stage('Backend Tests - product-service') {
             steps {
                 dir('backend/product-service') {
-                    sh 'mvn test'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test"
                 }
             }
         }
@@ -131,7 +136,7 @@ pipeline {
         stage('Backend Tests - media-service') {
             steps {
                 dir('backend/media-service') {
-                    sh 'mvn test'
+					sh "mvn -Dmaven.repo.local=${MAVEN_REPO_LOCAL} test"
                 }
             }
         }
@@ -259,9 +264,6 @@ pipeline {
         }
 
         stage('SonarQube Analysis - Frontend') {
-            options {
-                timeout(time: 15, unit: 'MINUTES')
-            }
             steps {
                 dir('frontend') {
                     script {
@@ -305,32 +307,27 @@ pipeline {
         /************************
          * Build Docker images  *
          ************************/
-        stage('Build Images') {
-            options {
-                timeout(time: 45, unit: 'MINUTES')   // per-stage timeout
-            }
-            steps {
-                script {
-                    echo "Building Docker images with tag: ${VERSION}"
-                    dir("${env.WORKSPACE}") {
-                        withEnv(["IMAGE_TAG=${VERSION}",
-                        "JAVA_TOOL_OPTIONS=-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
-                        ]) {
-                            sh 'docker compose -f docker-compose.yml build --parallel --progress=plain'
-                        }
-                    }
-                }
-            }
-        }
+		stage('Build Images') {
+			steps {
+				script {
+					echo "Building Docker images with tag: ${VERSION}"
+					dir("${env.WORKSPACE}") {
+						withEnv([
+							"IMAGE_TAG=${VERSION}",
+							"JAVA_TOOL_OPTIONS=-Dorg.jenkinsci.plugins.durabletask.BourneShellScript.HEARTBEAT_CHECK_INTERVAL=86400"
+						]) {
+							sh 'docker compose -f docker-compose.yml build --parallel --progress=plain'
+						}
+					}
+				}
+			}
+		}
 
         /******************************
          * Deploy, verify, and rollback
          ******************************/
         stage('Deploy & Verify') {
             steps {
-                options {
-                    timeout(time: 30, unit: 'MINUTES')
-                }
                 script {
                     dir("${env.WORKSPACE}") {
                         def cleanBranch = "${BRANCH ?: GIT_BRANCH ?: 'main'}".replaceAll(/^origin\//, '')
@@ -428,21 +425,23 @@ pipeline {
                 
                 if (env.GIT_COMMIT) {
                     withCredentials([string(credentialsId: 'github-safezone-token', variable: 'GITHUB_TOKEN')]) {
-                        // STATUS CHECK #1: Overall build status -> shows on GitHub ✅ safezone — Jenkins success
-                        sh """
-                            curl -s -H "Authorization: token \${GITHUB_TOKEN}" \\
-                                -X POST -H "Accept: application/vnd.github.v3+json" \\
-                                -d '{"state":"${ghState}", "context":"safezone", "description":"Jenkins ${buildState}", "target_url":"${BUILD_URL}"}' \\
-                                https://api.github.com/repos/mareerray/java-jenk/statuses/\${GIT_COMMIT}
-                        """
-                        // STATUS CHECK #2: Quality gate status -> shows on GitHub ✅ safezone — Quality gate success
-                        sh """
-                            curl -s -H "Authorization: token \${GITHUB_TOKEN}" \\
-                                -X POST -H "Accept: application/vnd.github.v3+json" \\
-                                -d '{"state":"${ghState}", "context":"safe-quality-gate", "description":"Quality gate ${buildState}"}' \\
-                                https://api.github.com/repos/mareerray/java-jenk/statuses/\${GIT_COMMIT}
-                        """
-                    }
+						sh """
+							set +e
+
+							curl -s -H "Authorization: token ${GITHUB_TOKEN}" \\
+							  -X POST -H "Accept: application/vnd.github.v3+json" \\
+							  -d '{"state":"${ghState}", "context":"safezone", "description":"Jenkins ${buildState}", "target_url":"${BUILD_URL}"}' \\
+							  https://api.github.com/repos/kurizma/safe-zone/statuses/${GIT_COMMIT} || true
+
+							curl -s -H "Authorization: token ${GITHUB_TOKEN}" \\
+							  -X POST -H "Accept: application/vnd.github.v3+json" \\
+							  -d '{"state":"${ghState}", "context":"safe-quality-gate", "description":"Quality gate ${buildState}"}' \\
+							  https://api.github.com/repos/kurizma/safe-zone/statuses/${GIT_COMMIT} || true
+
+							exit 0
+						"""
+					}
+
                 }
             }
         }
