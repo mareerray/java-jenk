@@ -431,12 +431,12 @@ pipeline {
 							curl -s -H "Authorization: token ${GITHUB_TOKEN}" \\
                                 -X POST -H "Accept: application/vnd.github.v3+json" \\
                                 -d '{"state":"${ghState}", "context":"safezone", "description":"Jenkins ${buildState}", "target_url":"${BUILD_URL}"}' \\
-                                https://api.github.com/repos/mareerray/safe-zone/statuses/${GIT_COMMIT} || true
+                                https://api.github.com/repos/mareerray/java-jenk/statuses/${GIT_COMMIT} || true
 
 							curl -s -H "Authorization: token ${GITHUB_TOKEN}" \\
                                 -X POST -H "Accept: application/vnd.github.v3+json" \\
                                 -d '{"state":"${ghState}", "context":"safe-quality-gate", "description":"Quality gate ${buildState}"}' \\
-                                https://api.github.com/repos/mareerray/safe-zone/statuses/${GIT_COMMIT} || true
+                                https://api.github.com/repos/mareerray/java-jenk/statuses/${GIT_COMMIT} || true
 
 							exit 0
 						"""
