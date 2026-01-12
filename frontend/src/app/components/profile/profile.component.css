@@ -76,5 +76,6 @@ img.rounded-circle {
   }
   .row {
     flex-direction: column;
+    /* yes */
   }
 }
