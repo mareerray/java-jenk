@@ -278,8 +278,8 @@ pipeline {
                                         -Dsonar.projectKey=safe-zone-frontend \
                                         -Dsonar.projectName="Safe Zone - Frontend" \
                                         -Dsonar.sources=src/app \
-                                        -Dsonar.exclusions=**/*.spec.ts,node_modules/**,dist/**,coverage/**,**/.env,**/.env* \
-                                        -Dsonar.cpd.exclusions=**/*.spec.ts,node_modules/** \
+                                        -Dsonar.exclusions=**/*.spec.ts,**/*.test.ts,**/*.stories.ts,**/*.mock.ts,**/*.d.ts,node_modules/**,dist/**,coverage/**,**/.env,**/.env*,src/environments/**,src/assets/** \
+                                        -Dsonar.cpd.exclusions=**/*.spec.ts,**/*.test.ts,**/*.stories.ts,**/*.mock.ts,node_modules/** \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
@@ -343,7 +343,7 @@ pipeline {
                             withEnv(["IMAGE_TAG=${VERSION}"]) {
                                 // Fail fast if frontend can't build/pull
                                 sh 'docker compose build frontend || exit 1'
-                                sh 'docker compose build --pull'  
+                                sh 'docker compose build --pull --parallel --progress=plain'  
                                 sh '''
                                     docker tag frontend:${VERSION} frontend:${STABLE_TAG} frontend:build-${BUILD_NUMBER} || true
                                     docker tag discovery-service:${VERSION} discovery-service:${STABLE_TAG} discovery-service:build-${BUILD_NUMBER} || true
