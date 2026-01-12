@@ -19,6 +19,7 @@ import java.util.List;
 @Validated
 public class ProductController {
     
+    private static final String SELLER_ROLE = "SELLER";
     private final ProductService productService;
     
     public ProductController(ProductService productService) {
@@ -64,7 +65,7 @@ public class ProductController {
             @RequestHeader("X-USER-ID") String sellerId,
             @RequestHeader("X-USER-ROLE") String role
     ) {
-        if (!"SELLER".equals(role)) {
+        if (!SELLER_ROLE.equals(role)) {
             throw new ForbiddenException("Only sellers can create products.");
         }
         
@@ -82,7 +83,7 @@ public class ProductController {
             @RequestHeader("X-USER-ID") String sellerId,
             @RequestHeader("X-USER-ROLE") String role
     ) {
-        if (!"SELLER".equals(role)) {
+        if (!SELLER_ROLE.equals(role)) {
             throw new ForbiddenException("Only sellers can update products.");
         }
         
@@ -97,7 +98,7 @@ public class ProductController {
             @RequestHeader("X-USER-ID") String sellerId,
             @RequestHeader("X-USER-ROLE") String role
     ) {
-        if (!"SELLER".equals(role)) {
+        if (!SELLER_ROLE.equals(role)) {
             throw new ForbiddenException("Only sellers can delete products.");
         }
         
