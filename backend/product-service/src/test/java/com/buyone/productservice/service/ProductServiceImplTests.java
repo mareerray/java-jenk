@@ -21,19 +21,20 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT) // relax strict stubbing for this class
 class ProductServiceImplTests {
+
+        private static final String SELLER_1 = "seller-1";
+        private static final String PROD_A = "Prod A";
+
     
     @Mock
     private ProductRepository productRepository;
@@ -48,10 +49,10 @@ class ProductServiceImplTests {
     
     @Test
     void createProduct_savesAndReturns_whenValid() {
-        String sellerId = "seller-1";
+        String sellerId = SELLER_1;
         
         CreateProductRequest req = CreateProductRequest.builder()
-                .name("Prod A")
+                .name(PROD_A)
                 .description("desc")
                 .price(10.0)
                 .quantity(5)
@@ -62,7 +63,7 @@ class ProductServiceImplTests {
         when(productRepository.findByUserId(sellerId)).thenReturn(List.of());
         Product saved = Product.builder()
                 .id("p1")
-                .name("Prod A")
+                .name(PROD_A)
                 .description("desc")
                 .price(10.0)
                 .quantity(5)
@@ -79,7 +80,7 @@ class ProductServiceImplTests {
         Product toSave = captor.getValue();
         
         assertThat(toSave.getUserId()).isEqualTo(sellerId);
-        assertThat(toSave.getName()).isEqualTo("Prod A");
+        assertThat(toSave.getName()).isEqualTo(PROD_A);
         assertThat(result.getId()).isEqualTo("p1");
         assertThat(result.getPrice()).isEqualTo(10.0);
     }
@@ -87,7 +88,7 @@ class ProductServiceImplTests {
     @Test
     void createProduct_throwsBadRequest_whenNegativePrice() {
         CreateProductRequest req = CreateProductRequest.builder()
-                .name("Prod A")
+                .name(PROD_A)
                 .price(-1.0)
                 .quantity(1)
                 .build();
@@ -100,7 +101,7 @@ class ProductServiceImplTests {
     @Test
     void createProduct_throwsBadRequest_whenNegativeQuantity() {
         CreateProductRequest req = CreateProductRequest.builder()
-                .name("Prod A")
+                .name(PROD_A)
                 .price(1.0)
                 .quantity(-1)
                 .build();
@@ -112,16 +113,16 @@ class ProductServiceImplTests {
     
     @Test
     void createProduct_throwsConflict_whenDuplicateNameForSeller() {
-        String sellerId = "seller-1";
+        String sellerId = SELLER_1;
         
         CreateProductRequest req = CreateProductRequest.builder()
-                .name("Prod A")
+                .name(PROD_A)
                 .price(1.0)
                 .quantity(1)
                 .build();
         
         Product existing = Product.builder()
-                .id("p1").name("prod a").userId(sellerId)
+                .id("p1").name(PROD_A).userId(sellerId)
                 .build();
         when(productRepository.findByUserId(sellerId)).thenReturn(List.of(existing));
         
@@ -135,15 +136,15 @@ class ProductServiceImplTests {
     @Test
     void getProductById_returnsResponse_whenFound() {
         Product p = Product.builder()
-                .id("p1").name("Prod A").price(10.0)
-                .userId("seller-1")
+                .id("p1").name(PROD_A).price(10.0)
+                .userId(SELLER_1)
                 .build();
         when(productRepository.findById("p1")).thenReturn(Optional.of(p));
         
         ProductResponse result = productService.getProductById("p1");
         
         assertThat(result.getId()).isEqualTo("p1");
-        assertThat(result.getName()).isEqualTo("Prod A");
+        assertThat(result.getName()).isEqualTo(PROD_A);
     }
     
     @Test
@@ -181,7 +182,7 @@ class ProductServiceImplTests {
     
     @Test
     void updateProduct_updatesFields_whenOwnerAndValid() {
-        String sellerId = "seller-1";
+        String sellerId = SELLER_1;
         
         Product existing = Product.builder()
                 .id("p1")
@@ -255,7 +256,7 @@ class ProductServiceImplTests {
     void updateProduct_throwsBadRequest_whenNegativePrice() {
         Product existing = Product.builder()
                 .id("p1")
-                .userId("seller-1")
+                .userId(SELLER_1)
                 .build();
         
         UpdateProductRequest req = UpdateProductRequest.builder()
@@ -264,7 +265,7 @@ class ProductServiceImplTests {
         
         when(productRepository.findById("p1")).thenReturn(Optional.of(existing));
         
-        assertThatThrownBy(() -> productService.updateProduct("p1", req, "seller-1"))
+        assertThatThrownBy(() -> productService.updateProduct("p1", req, SELLER_1))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Price must be non-negative");
     }
@@ -273,7 +274,7 @@ class ProductServiceImplTests {
     void updateProduct_throwsBadRequest_whenNegativeQuantity() {
         Product existing = Product.builder()
                 .id("p1")
-                .userId("seller-1")
+                .userId(SELLER_1)
                 .build();
         
         UpdateProductRequest req = UpdateProductRequest.builder()
@@ -282,14 +283,14 @@ class ProductServiceImplTests {
         
         when(productRepository.findById("p1")).thenReturn(Optional.of(existing));
         
-        assertThatThrownBy(() -> productService.updateProduct("p1", req, "seller-1"))
+        assertThatThrownBy(() -> productService.updateProduct("p1", req, SELLER_1))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Quantity must be zero or greater");
     }
     
     @Test
     void updateProduct_throwsConflict_whenNewNameAlreadyExistsForSeller() {
-        String sellerId = "seller-1";
+        String sellerId = SELLER_1;
         
         Product existing = Product.builder()
                 .id("p1")
@@ -319,7 +320,7 @@ class ProductServiceImplTests {
 //
 //    @Test
 //    void deleteProduct_deletes_whenOwner() {
-//        String sellerId = "seller-1";
+//        String sellerId = SELLER_1;
 //
 //        Product existing = Product.builder()
 //                .id("p1")
@@ -364,9 +365,9 @@ class ProductServiceImplTests {
     
     @Test
     void getProductsBySeller_returnsList_evenWhenEmpty() {
-        when(productRepository.findByUserId("seller-1")).thenReturn(List.of());
+        when(productRepository.findByUserId(SELLER_1)).thenReturn(List.of());
         
-        List<ProductResponse> result = productService.getProductsBySeller("seller-1");
+        List<ProductResponse> result = productService.getProductsBySeller(SELLER_1);
         
         assertThat(result).isEmpty();
     }
