@@ -21,7 +21,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceImplTests {
-    
+        
+    private static final String SLUG_1 = "slug-1";
+
     @Mock
     private CategoryRepository categoryRepository;
     
@@ -31,7 +33,7 @@ class CategoryServiceImplTests {
     @Test
     void getAllCategories_mapsEntitiesToResponses() {
         Category c1 = Category.builder()
-                .id("c1").slug("slug-1").name("Cat 1")
+                .id("c1").slug(SLUG_1).name("Cat 1")
                 .icon("icon1").description("desc1")
                 .build();
         Category c2 = Category.builder()
@@ -50,7 +52,7 @@ class CategoryServiceImplTests {
     @Test
     void getCategoryById_returnsResponse_whenFound() {
         Category c = Category.builder()
-                .id("c1").slug("slug-1").name("Cat 1")
+                .id("c1").slug(SLUG_1).name("Cat 1")
                 .icon("icon1").description("desc1")
                 .build();
         when(categoryRepository.findById("c1")).thenReturn(Optional.of(c));
@@ -91,7 +93,7 @@ class CategoryServiceImplTests {
     @Test
     void updateCategory_updatesFieldsAndSaves() {
         Category existing = Category.builder()
-                .id("c1").slug("slug-1").name("Old")
+                .id("c1").slug(SLUG_1).name("Old")
                 .icon("old-icon").description("old-desc")
                 .build();
         
@@ -104,7 +106,7 @@ class CategoryServiceImplTests {
         when(categoryRepository.findById("c1")).thenReturn(Optional.of(existing));
         
         Category saved = Category.builder()
-                .id("c1").slug("slug-1").name("New")
+                .id("c1").slug(SLUG_1).name("New")
                 .icon("new-icon").description("new-desc")
                 .build();
         when(categoryRepository.save(any(Category.class))).thenReturn(saved);
