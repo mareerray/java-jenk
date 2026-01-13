@@ -34,6 +34,8 @@ class ProductServiceImplTests {
 
         private static final String SELLER_1 = "seller-1";
         private static final String PROD_A = "Prod A";
+        private static final String CAT_1 = "cat-1";
+        private static final String ERROR_MSG = "No products found";
 
     
     @Mock
@@ -56,7 +58,7 @@ class ProductServiceImplTests {
                 .description("desc")
                 .price(10.0)
                 .quantity(5)
-                .categoryId("cat-1")
+                .categoryId(CAT_1)
                 .images(List.of("img1", "img2"))
                 .build();
         
@@ -68,7 +70,7 @@ class ProductServiceImplTests {
                 .price(10.0)
                 .quantity(5)
                 .userId(sellerId)
-                .categoryId("cat-1")
+                .categoryId(CAT_1)
                 .images(List.of("img1", "img2"))
                 .build();
         when(productRepository.save(any(Product.class))).thenReturn(saved);
@@ -175,7 +177,7 @@ class ProductServiceImplTests {
         
         assertThatThrownBy(productService::getAllProducts)
                 .isInstanceOf(ProductNotFoundException.class)
-                .hasMessageContaining("No products found");
+                .hasMessageContaining(ERROR_MSG);
     }
     
     // -------- updateProduct --------
@@ -191,7 +193,7 @@ class ProductServiceImplTests {
                 .price(10.0)
                 .quantity(5)
                 .userId(sellerId)
-                .categoryId("cat-1")
+                .categoryId("CAT_1")
                 .images(List.of("old-img"))
                 .build();
         
