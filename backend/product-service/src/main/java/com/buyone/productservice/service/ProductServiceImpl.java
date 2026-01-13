@@ -9,8 +9,8 @@ import com.buyone.productservice.exception.ProductNotFoundException;
 import com.buyone.productservice.exception.BadRequestException;
 import com.buyone.productservice.exception.ConflictException;
 import com.buyone.productservice.exception.ForbiddenException;
-import com.buyone.productservice.event.ProductCreatedEvent;
-import com.buyone.productservice.event.ProductUpdatedEvent;
+// import com.buyone.productservice.event.ProductCreatedEvent;
+// import com.buyone.productservice.event.ProductUpdatedEvent;
 import com.buyone.productservice.event.ProductDeletedEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -75,12 +75,12 @@ public class ProductServiceImpl implements ProductService {
                 .build();
         
         Product savedProduct = productRepository.save(product);
-        ProductCreatedEvent event = ProductCreatedEvent.builder()
-                .productId(savedProduct.getId())
-                .sellerId(sellerId)
-                .name(savedProduct.getName())
-                .price(savedProduct.getPrice())
-                .build();
+        // ProductCreatedEvent event = ProductCreatedEvent.builder()
+        //         .productId(savedProduct.getId())
+        //         .sellerId(sellerId)
+        //         .name(savedProduct.getName())
+        //         .price(savedProduct.getPrice())
+        //         .build();
         // Publish event
         // kafkaTemplate.send(productCreatedTopic, event)
         //         .whenComplete((result, ex) -> {
@@ -155,12 +155,12 @@ public class ProductServiceImpl implements ProductService {
         if (request.getImages() != null) product.setImages(request.getImages());
 
         Product updatedProduct = productRepository.save(product);
-        ProductUpdatedEvent event = ProductUpdatedEvent.builder()
-                .productId(updatedProduct.getId())
-                .sellerId(sellerId)
-                .name(updatedProduct.getName())
-                .price(updatedProduct.getPrice())
-                .build();
+        // ProductUpdatedEvent event = ProductUpdatedEvent.builder()
+        //         .productId(updatedProduct.getId())
+        //         .sellerId(sellerId)
+        //         .name(updatedProduct.getName())
+        //         .price(updatedProduct.getPrice())
+        //         .build();
         // kafkaTemplate.send(productUpdatedTopic, event)
         //         .whenComplete((result, ex) -> {
         //             if (ex != null) {
