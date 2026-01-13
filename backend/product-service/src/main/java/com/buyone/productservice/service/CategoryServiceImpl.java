@@ -5,7 +5,6 @@ import com.buyone.productservice.model.Category;
 import com.buyone.productservice.repository.CategoryRepository;
 import com.buyone.productservice.request.UpdateCategoryRequest;
 import com.buyone.productservice.response.CategoryResponse;
-import com.buyone.productservice.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
