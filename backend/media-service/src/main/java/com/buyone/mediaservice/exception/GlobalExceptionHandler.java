@@ -10,13 +10,16 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import jakarta.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     // Helper for building structured error responses
     private ResponseEntity<ErrorResponse> buildError(HttpStatus status, String message, String path) {
@@ -88,10 +91,10 @@ public class GlobalExceptionHandler {
     // 500: Fallback for unhandled exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        ex.printStackTrace();
-        String cause = ex.getCause() != null ? ex.getCause().toString() : "No root cause";
+        LOGGER.error("Unhandled exception", ex);
+        Throwable cause = ex.getCause();
         String fullMessage = (ex.getMessage() != null ? ex.getMessage() : "Unexpected server error")
-                + " [" + cause + "]";
+                + " [" + (cause != null ? cause.toString() : "no cause") + "]";
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, fullMessage, request.getRequestURI());
     }
 }
