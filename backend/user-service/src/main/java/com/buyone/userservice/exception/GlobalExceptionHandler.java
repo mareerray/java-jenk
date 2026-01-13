@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     // Helper for building error responses
     private ResponseEntity<ErrorResponse> buildError(HttpStatus status, String message, String path) {
@@ -82,7 +85,7 @@ public class GlobalExceptionHandler {
     // 500: Generic fallback
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        ex.printStackTrace();
+        LOGGER.error("Unhandled exception", ex);
         String cause = ex.getCause() != null ? ex.getCause().toString() : "No root cause";
         String fullMessage = (ex.getMessage() != null ? ex.getMessage() : "Unexpected server error")
                 + " [" + cause + "]";
