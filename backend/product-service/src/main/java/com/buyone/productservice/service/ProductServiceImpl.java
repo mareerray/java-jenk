@@ -9,8 +9,6 @@ import com.buyone.productservice.exception.ProductNotFoundException;
 import com.buyone.productservice.exception.BadRequestException;
 import com.buyone.productservice.exception.ConflictException;
 import com.buyone.productservice.exception.ForbiddenException;
-// import com.buyone.productservice.event.ProductCreatedEvent;
-// import com.buyone.productservice.event.ProductUpdatedEvent;
 import com.buyone.productservice.event.ProductDeletedEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -59,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> existing = productRepository.findByUserId(sellerId)
                 .stream()
                 .filter(p -> p.getName().equalsIgnoreCase(request.getName()))
-                .collect(Collectors.toList());
+                .toList();
         if (!existing.isEmpty()) {
             throw new ConflictException("Product with name already exists for seller.");
         }
@@ -75,21 +72,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
         
         Product savedProduct = productRepository.save(product);
-        // ProductCreatedEvent event = ProductCreatedEvent.builder()
-        //         .productId(savedProduct.getId())
-        //         .sellerId(sellerId)
-        //         .name(savedProduct.getName())
-        //         .price(savedProduct.getPrice())
-        //         .build();
-        // Publish event
-        // kafkaTemplate.send(productCreatedTopic, event)
-        //         .whenComplete((result, ex) -> {
-        //             if (ex != null) {
-        //                 log.error("Failed to publish event", ex);
-        //             } else {
-        //                 log.info("Event published: " + event);
-        //             }
-        //         });
+        // Event creation intentionally omitted because publishing is disabled.
         return toProductResponse(savedProduct);
     }
     
@@ -113,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
         }
         return products.stream()
                 .map(this::toProductResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
     
     // Update product (seller only)
@@ -121,54 +104,13 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse updateProduct(String id, UpdateProductRequest request, String sellerId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Cannot update — Product not found with ID: " + id));
-        // BUSINESS RULE:
-        // Only owner (seller) can update this product
-        if (!product.getUserId().equals(sellerId)) {
-            throw new ForbiddenException("Unauthorized: You do not own this product");
-        }
         
-        // Validate business logic on incoming changes
-        if (request.getPrice() != null && request.getPrice() < 0) {
-            throw new BadRequestException("Price must be non-negative.");
-        }
-        if (request.getQuantity() != null && request.getQuantity() < 0) {
-            throw new BadRequestException("Quantity must be zero or greater.");
-        }
-        
-        // Prevent changing to a name that already exists for same seller (conflict)
-        if (request.getName() != null && !request.getName().equals(product.getName())) {
-            List<Product> existing = productRepository.findByUserId(sellerId)
-                    .stream()
-                    .filter(p -> p.getName().equalsIgnoreCase(request.getName()) && !p.getId().equals(product.getId()))
-                    .collect(Collectors.toList());
-            if (!existing.isEmpty()) {
-                throw new ConflictException("Product with name already exists for seller.");
-            }
-        }
-        
-        // Update fields if provided
-        if (request.getName() != null) product.setName(request.getName());
-        if (request.getDescription() != null) product.setDescription(request.getDescription());
-        if (request.getPrice() != null) product.setPrice(request.getPrice());
-        if (request.getQuantity() != null) product.setQuantity(request.getQuantity());
-        if (request.getCategoryId() != null) product.setCategoryId(request.getCategoryId());
-        if (request.getImages() != null) product.setImages(request.getImages());
+        validateOwnership(product, sellerId);
+        validateUpdateRequest(request, product, sellerId);
+        updateProductFields(product, request);
 
         Product updatedProduct = productRepository.save(product);
-        // ProductUpdatedEvent event = ProductUpdatedEvent.builder()
-        //         .productId(updatedProduct.getId())
-        //         .sellerId(sellerId)
-        //         .name(updatedProduct.getName())
-        //         .price(updatedProduct.getPrice())
-        //         .build();
-        // kafkaTemplate.send(productUpdatedTopic, event)
-        //         .whenComplete((result, ex) -> {
-        //             if (ex != null) {
-        //                 log.error("Failed to publish event", ex);
-        //             } else {
-        //                 log.info("Event published: " + event);
-        //             }
-        //         });
+        // Event creation intentionally omitted because publishing is disabled.
         return toProductResponse(updatedProduct);
     }
     
@@ -194,7 +136,7 @@ public class ProductServiceImpl implements ProductService {
                     if (ex != null) {
                         log.error("Failed to publish event", ex);
                     } else {
-                        log.info("Event published: " + event);
+                        log.info("Event published: {}", event);
                     }
                 });
 
@@ -204,13 +146,43 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductResponse> getProductsBySeller(String sellerId) {
         List<Product> products = productRepository.findByUserId(sellerId);
-        // Do NOT throw on empty; just map to DTOs
-        // if (products.isEmpty()) {
-        //     throw new ProductNotFoundException("No products found for seller: " + sellerId);
-        // }
-        return products.stream().map(this::toProductResponse).collect(Collectors.toList());
+        return products.stream().map(this::toProductResponse).toList();
     }
     
+    private void validateOwnership(Product product, String sellerId) {
+        if (!product.getUserId().equals(sellerId)) {
+            throw new ForbiddenException("Unauthorized: You do not own this product");
+        }
+    }
+    
+    private void validateUpdateRequest(UpdateProductRequest request, Product product, String sellerId) {
+        if (request.getPrice() != null && request.getPrice() < 0) {
+            throw new BadRequestException("Price must be non-negative.");
+        }
+        if (request.getQuantity() != null && request.getQuantity() < 0) {
+            throw new BadRequestException("Quantity must be zero or greater.");
+        }
+        
+        if (request.getName() != null && !request.getName().equals(product.getName())) {
+            List<Product> existing = productRepository.findByUserId(sellerId)
+                    .stream()
+                    .filter(p -> p.getName().equalsIgnoreCase(request.getName()) && !p.getId().equals(product.getId()))
+                    .toList();
+            if (!existing.isEmpty()) {
+                throw new ConflictException("Product with name already exists for seller.");
+            }
+        }
+    }
+    
+    private void updateProductFields(Product product, UpdateProductRequest request) {
+        if (request.getName() != null) product.setName(request.getName());
+        if (request.getDescription() != null) product.setDescription(request.getDescription());
+        if (request.getPrice() != null) product.setPrice(request.getPrice());
+        if (request.getQuantity() != null) product.setQuantity(request.getQuantity());
+        if (request.getCategoryId() != null) product.setCategoryId(request.getCategoryId());
+        if (request.getImages() != null) product.setImages(request.getImages());
+    }
+
     // Helper: Map Product entity to ProductResponse DTO
     private ProductResponse toProductResponse(Product product) {
         return ProductResponse.builder()
