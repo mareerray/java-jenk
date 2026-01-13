@@ -9,8 +9,6 @@ import com.buyone.productservice.exception.ProductNotFoundException;
 import com.buyone.productservice.exception.BadRequestException;
 import com.buyone.productservice.exception.ConflictException;
 import com.buyone.productservice.exception.ForbiddenException;
-import com.buyone.productservice.event.ProductCreatedEvent;
-import com.buyone.productservice.event.ProductUpdatedEvent;
 import com.buyone.productservice.event.ProductDeletedEvent;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -59,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
         List<Product> existing = productRepository.findByUserId(sellerId)
                 .stream()
                 .filter(p -> p.getName().equalsIgnoreCase(request.getName()))
-                .collect(Collectors.toList());
+                .toList();
         if (!existing.isEmpty()) {
             throw new ConflictException("Product with name already exists for seller.");
         }
@@ -75,21 +72,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
         
         Product savedProduct = productRepository.save(product);
-        ProductCreatedEvent event = ProductCreatedEvent.builder()
-                .productId(savedProduct.getId())
-                .sellerId(sellerId)
-                .name(savedProduct.getName())
-                .price(savedProduct.getPrice())
-                .build();
-        // Publish event
-        // kafkaTemplate.send(productCreatedTopic, event)
-        //         .whenComplete((result, ex) -> {
-        //             if (ex != null) {
-        //                 log.error("Failed to publish event", ex);
-        //             } else {
-        //                 log.info("Event published: " + event);
-        //             }
-        //         });
+        // Event creation intentionally omitted because publishing is disabled.
         return toProductResponse(savedProduct);
     }
     
@@ -113,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
         }
         return products.stream()
                 .map(this::toProductResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
     
     // Update product (seller only)
@@ -127,20 +110,7 @@ public class ProductServiceImpl implements ProductService {
         updateProductFields(product, request);
 
         Product updatedProduct = productRepository.save(product);
-        ProductUpdatedEvent event = ProductUpdatedEvent.builder()
-                .productId(updatedProduct.getId())
-                .sellerId(sellerId)
-                .name(updatedProduct.getName())
-                .price(updatedProduct.getPrice())
-                .build();
-        // kafkaTemplate.send(productUpdatedTopic, event)
-        //         .whenComplete((result, ex) -> {
-        //             if (ex != null) {
-        //                 log.error("Failed to publish event", ex);
-        //             } else {
-        //                 log.info("Event published: " + event);
-        //             }
-        //         });
+        // Event creation intentionally omitted because publishing is disabled.
         return toProductResponse(updatedProduct);
     }
     
@@ -176,11 +146,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductResponse> getProductsBySeller(String sellerId) {
         List<Product> products = productRepository.findByUserId(sellerId);
-        // Do NOT throw on empty; just map to DTOs
-        // if (products.isEmpty()) {
-        //     throw new ProductNotFoundException("No products found for seller: " + sellerId);
-        // }
-        return products.stream().map(this::toProductResponse).collect(Collectors.toList());
+        return products.stream().map(this::toProductResponse).toList();
     }
     
     private void validateOwnership(Product product, String sellerId) {
@@ -201,7 +167,7 @@ public class ProductServiceImpl implements ProductService {
             List<Product> existing = productRepository.findByUserId(sellerId)
                     .stream()
                     .filter(p -> p.getName().equalsIgnoreCase(request.getName()) && !p.getId().equals(product.getId()))
-                    .collect(Collectors.toList());
+                    .toList();
             if (!existing.isEmpty()) {
                 throw new ConflictException("Product with name already exists for seller.");
             }
