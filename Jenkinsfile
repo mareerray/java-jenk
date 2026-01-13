@@ -244,7 +244,7 @@ pipeline {
                                         -Dsonar.sources=src \
                                         -Dsonar.java.binaries=target/classes \
                                         -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
-                                        -Dsonar.coverage.exclusions="**/src/test/**,**/config/**"\
+                                        -Dsonar.coverage.exclusions="**/src/test/**,**/config/**" \
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
@@ -303,7 +303,11 @@ pipeline {
                 script {
                     echo 'Checking SonarQube Quality Gate...'
                     timeout(time: 5, unit: 'MINUTES') {
-                        waitForQualityGate abortPipeline: true
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "❌ Quality Gate FAILED for ${qg.status}"
+                        // waitForQualityGate abortPipeline: true
+                        }
                     }
                 }
             }
