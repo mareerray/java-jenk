@@ -157,6 +157,20 @@ class ProductServiceImplTests {
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("Product not found with ID");
     }
+
+    @Test
+void getProductsBySeller_returnsMappedList_whenProductsExist() {
+    Product p1 = Product.builder().id("p1").name("A").userId(SELLER_1).build();
+    Product p2 = Product.builder().id("p2").name("B").userId(SELLER_1).build();
+    when(productRepository.findByUserId(SELLER_1)).thenReturn(List.of(p1, p2));
+
+    List<ProductResponse> result = productService.getProductsBySeller(SELLER_1);
+
+    assertThat(result).hasSize(2);
+    assertThat(result).extracting(ProductResponse::getId)
+            .containsExactlyInAnyOrder("p1", "p2");
+}
+
     
     @Test
     void getAllProducts_returnsList_whenExists() {
