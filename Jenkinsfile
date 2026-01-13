@@ -244,7 +244,7 @@ pipeline {
                                         -Dsonar.sources=src \
                                         -Dsonar.java.binaries=target/classes \
                                         -Dsonar.exclusions="**/.env,**/.env*,**/*.log" \
-                                        -Dsonar.coverage.exclusions="**/src/test/**,**/config/**,**/*Config*.java,**/*ProductService*.java" \
+                                        -Dsonar.coverage.exclusions="**/src/test/**,**/config/**,**/exception/GlobalExceptionHandler.java,**/controller/ProductController.java"\
                                         -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.token=${SONAR_TOKEN}
                                 '''
