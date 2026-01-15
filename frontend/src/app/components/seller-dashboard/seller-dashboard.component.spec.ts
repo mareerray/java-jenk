@@ -13,6 +13,7 @@ const mockUser = {
   name: 'John Seller',
   role: 'SELLER',
   avatar: 'avatar.jpg',
+  // other user properties
 };
 const mockProducts = [
   {
