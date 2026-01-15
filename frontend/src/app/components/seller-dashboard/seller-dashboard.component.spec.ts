@@ -10,9 +10,10 @@ import { of } from 'rxjs';
 
 const mockUser = {
   id: 'seller1',
-  // name: 'John Seller',
+  name: 'John Seller',
   role: 'SELLER',
   avatar: 'avatar.jpg',
+  // other user properties
 };
 const mockProducts = [
   {
