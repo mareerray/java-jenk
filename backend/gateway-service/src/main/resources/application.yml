@@ -53,13 +53,13 @@ spring:
             - Path=/media/**
           filters:
             - JwtHeader
-
-            # NEW: Public categories route (no JWT required)
+        
+           # NEW: Public categories route (no JWT required)
         - id: categories-service
           uri: lb://PRODUCT-SERVICE  # Assuming categories in product-service
           predicates:
             - Path=/categories/**
-            # NO filters needed - path matches perfectly
+           # NO filters needed - path matches perfectly
 
 
 eureka:
@@ -72,5 +72,3 @@ eureka:
 logging:
   level:
     org.springframework.security: DEBUG
-
-

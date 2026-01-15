@@ -37,7 +37,7 @@ eureka:
 
 app:
   media:
-    public-base-url: "https://pub-0695601915114c88a20b5aa2ba5091cd.r2.dev"
+      public-base-url: "https://pub-0695601915114c88a20b5aa2ba5091cd.r2.dev"
   kafka:
     topic:
       product-deleted: product.deleted
