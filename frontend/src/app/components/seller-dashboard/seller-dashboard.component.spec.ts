@@ -14,6 +14,7 @@ const mockUser = {
   role: 'SELLER',
   avatar: 'avatar.jpg',
   // other user properties
+  // comment comment;
 };
 const mockProducts = [
   {
