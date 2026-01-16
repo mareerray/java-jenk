@@ -68,11 +68,11 @@
 
 .modal-content::-webkit-scrollbar-thumb {
   background: var(--link-hover);          /* The thumb color */
-  border-radius: 8px;            /* Rounded thumb */
+  border-radius: 8px;            
 }
 
 .modal-content::-webkit-scrollbar-track {
-  background: #222831;          /* The background/track color */
+  background: #222831;          
   border-radius: 8px;
 }
 
